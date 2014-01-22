@@ -1,4 +1,4 @@
-labwiki_topology_plugin
-=======================
+labwiki_experiment_plugin
+=========================
 
-A plugin for Labwiki to view and manipulate topologies
+A plugin for Labwiki to prepare, execute, and monitor OMF experiments.
