@@ -57,7 +57,7 @@ LabWiki::PluginManager.register :experiment, {
     :experiment_setup_renderer => LabWiki::Plugin::Experiment::ExperimentSetupRenderer,
     :experiment_running_renderer => LabWiki::Plugin::Experiment::ExperimentRunningRenderer
   },
-#  :resources => File.dirname(__FILE__) + File.SEPARATOR + 'resource'
-  :resources => File.dirname(__FILE__) + '/resource' # should find a more portable solution
+  :resources => File.join(File.dirname(__FILE__), 'resource'),
+  :config_ru => File.join(File.dirname(__FILE__), 'config.ru')
 }
 

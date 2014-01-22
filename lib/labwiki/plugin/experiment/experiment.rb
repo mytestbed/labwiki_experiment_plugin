@@ -9,18 +9,18 @@ require 'labwiki/plugin/experiment/graph_description'
 require 'labwiki/plugin/experiment/redis_helper'
 
 # HACK to read data source from data source proxy, this should go to omf_web
-module OMF::Web
-  class DataSourceProxy < OMF::Common::LObject
-    attr_reader :data_source
-  end
-end
+# module OMF::Web
+  # class DataSourceProxy < OMF::Base::LObject
+    # attr_reader :data_source
+  # end
+# end
 
 module LabWiki::Plugin::Experiment
 
   # Maintains the context for a particular experiment.
   #
   class Experiment < OMF::Base::LObject
-    include LabWiki::Plugin::Experiment::RedisHelper
+    #include LabWiki::Plugin::Experiment::RedisHelper
 
     attr_reader :name, :state, :url, :slice, :properties
 
@@ -99,7 +99,8 @@ module LabWiki::Plugin::Experiment
 
       unless @state == :finished
         @start_time = Time.now
-        self.persist [:name, :status, :props, :url, :start_time]
+        persist
+        #self.persist [:name, :status, :props, :url, :start_time]
 
         @ec.start
       end
@@ -152,22 +153,36 @@ module LabWiki::Plugin::Experiment
     #     persist [:name, :status, :props, :url]
     #
     def persist(data_to_store = [:status])
-      data_to_store.each do |key|
-        case key
-        when :status
-          redis.set ns(:status, @name), @state
-        when :name
-          redis.sadd ns(:experiments, user), @name
-        when :props
-          @properties.each { |p| redis.sadd ns(:props, @name), p.to_json }
-        when :url
-          redis.set ns(:url, @name), @url
-        when :start_time
-          redis.set ns(:start_time, @name), @start_time
-        when :pid
-          redis.set ns(:pid, @name), @ec.pid
-        end
-      end
+
+      state = {
+        name: @name,
+        url: @content_url,
+        script_url: @url,
+        status: @state,
+        properties: @properties,
+        slice: @slice,
+        start_time: @start_time,
+        pid: @ec.pid,
+        timestamp: Time.now
+      }
+      puts "PERSIST: #{state.to_json}"
+
+      # data_to_store.each do |key|
+        # case key
+        # when :status
+          # redis.set ns(:status, @name), @state
+        # when :name
+          # redis.sadd ns(:experiments, user), @name
+        # when :props
+          # @properties.each { |p| redis.sadd ns(:props, @name), p.to_json }
+        # when :url
+          # redis.set ns(:url, @name), @url
+        # when :start_time
+          # redis.set ns(:start_time, @name), @start_time
+        # when :pid
+          # redis.set ns(:pid, @name), @ec.pid
+        # end
+      # end
     end
 
     def handle_exp_output(ec, etype, msg)
@@ -225,7 +240,9 @@ module LabWiki::Plugin::Experiment
 
       gp = @graph_proxy ||= OMF::Web::DataSourceProxy.for_source(:name => "graph_#{@name}")[0]
       #gp.to_javascript(1) + lp.to_javascript(1)
-      gp.to_javascript() + lp.to_javascript()
+      js = gp.to_javascript() + lp.to_javascript()
+      #puts "DS_RENDER >>> #{js}"
+      js.gsub '/_update/', 'http://localhost:5000/_update/'
     end
 
     def parse_oidl_script(content)
