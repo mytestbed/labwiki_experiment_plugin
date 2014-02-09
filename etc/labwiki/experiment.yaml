@@ -6,12 +6,18 @@ labwiki:
       top_dir: ~/tmp/labwiki
       is_primary: true
   plugins:
-    topology:
-      init: 'labwiki/plugin/topology/init'
+    # topology:
+      # init: 'labwiki/plugin/topology/init'
     experiment:
-      artifact_dir: git:default:/experiments  # Where to store experiment related artifacts
-      ec_runner: ~/src/omf_labwiki/test/omf_exec/omf_exec-norbit.sh
-      oml:
-        host: norbit.npc.nicta.com.au
-        user: oml2
-        pwd: omlisgoodforyou
+      plugin_dir: labwiki_experiment_plugin
+      job_service:
+        host: localhost
+        port: 8002
+
+      # artifact_dir: git:default:/experiments  # Where to store experiment related artifacts
+      # ec_runner: ~/src/omf_labwiki/test/omf_exec/omf_exec-norbit.sh
+      # oml:
+        # host: srv.mytestbed.net
+        # port: 3004
+        # user: oml2
+        # pwd: omlisgoodforyou

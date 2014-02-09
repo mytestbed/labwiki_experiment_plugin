@@ -6,10 +6,11 @@ end
 require 'labwiki/plugin/experiment/experiment_widget'
 require 'labwiki/plugin/experiment/renderer/experiment_setup_renderer'
 require 'labwiki/plugin/experiment/renderer/experiment_running_renderer'
+require 'labwiki/plugin/experiment/experiment_search_proxy'
 
 LabWiki::PluginManager.register :experiment, {
-  :search => lambda do ||
-  end,
+  # :search => lambda do ||
+  # end,
   :selector => lambda do ||
   end,
   :on_session_init => lambda do
@@ -25,18 +26,18 @@ LabWiki::PluginManager.register :experiment, {
         case opts[:mime_type]
         when /^text\/ruby/
           500
-        when /^exp\/task/
-          400
+        when /^plugin\/experiment/
+          900
         else
           nil
         end
       end,
       :widget_class => LabWiki::Plugin::Experiment::ExperimentWidget,
       :search => lambda do |pat, opts|
-        # TODO The next line should be commented out when upgrading to newest omf_web
-        opts[:mime_type] = 'text/ruby'
-        OMF::Web::ContentRepository.find_files(pat, opts)
+        LabWiki::Plugin::Experiment::ExperimentSearchProxy.instance.find(pat, opts)
       end
+
+
       # if col == 'execute' && OMF::Web::SessionStore[:exps, :omf]
         # res = []
         # OMF::Web::SessionStore[:exps, :omf].find_all do |v|

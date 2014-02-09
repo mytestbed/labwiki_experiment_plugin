@@ -68,7 +68,11 @@ module LabWiki::Plugin::Experiment
       tr :class => fname do
         td name + ':', :class => "desc"
         td :class => "input #{fname}", :colspan => (comment ? 1 : 2) do
-          span prop[:value]
+          if url = prop[:url]
+            a prop[:value], href: url
+          else
+            span prop[:value]
+          end
         end
         if with_comment && comment
           td :class => "comment" do

@@ -3,10 +3,10 @@ require 'ruby_parser'
 require 'omf_web'
 require 'omf-web/content/repository'
 require 'omf_oml/table'
-require 'labwiki/plugin/experiment/run_exp_controller'
+# require 'labwiki/plugin/experiment/run_exp_controller'
 require 'labwiki/plugin/experiment/oml_connector'
-require 'labwiki/plugin/experiment/graph_description'
-require 'labwiki/plugin/experiment/redis_helper'
+# require 'labwiki/plugin/experiment/graph_description'
+# require 'labwiki/plugin/experiment/redis_helper'
 
 # HACK to read data source from data source proxy, this should go to omf_web
 # module OMF::Web
@@ -20,39 +20,19 @@ module LabWiki::Plugin::Experiment
   # Maintains the context for a particular experiment.
   #
   class Experiment < OMF::Base::LObject
-    #include LabWiki::Plugin::Experiment::RedisHelper
+    attr_reader :name, :state, :url, :slice, :decl_properties, :exp_properties
 
-    attr_reader :name, :state, :url, :slice, :properties
+    def initialize(params, config_opts)
+      debug "PARAMS: #{params}, CONFIG: #{config_opts}"
 
-    def initialize(description_url = nil, config_opts)
-      unless description_url
-        @state = :new
-        @graph_descriptions = []
+      @state = :new
+      @url = params[:url]
+      if (@url)
+        @oedl_script = OMF::Web::ContentRepository.read_content(@url, {})
+        @decl_properties = parse_oedl_script(@oedl_script)
       end
+
       @config_opts = config_opts
-    end
-
-    def script=(url)
-      if (@url = url)
-        description = OMF::Web::ContentRepository.read_content(url, {})
-        @properties = parse_oidl_script(description)
-      end
-    end
-
-    def recreate_experiment(omf_exp_id)
-      @name = omf_exp_id
-      @url = redis.get ns(:url, omf_exp_id)
-      @state = redis.get ns(:status, omf_exp_id)
-      @start_time = Time.new (redis.get ns(:start_time, omf_exp_id))
-      @properties = redis.smembers(ns(:props, omf_exp_id)).map { |p| JSON.parse(p).symbolize_keys }
-      create_oml_tables
-
-      pid = redis.get ns(:pid, omf_exp_id)
-      pid = pid.to_i if pid
-      @ec = LabWiki::Plugin::Experiment::RunExpController.new(@name) do |etype, msg|
-        handle_exp_output @ec, etype, msg
-      end
-      @ec.monitor(pid)
     end
 
     def start_experiment(properties, slice, name, irods = {})
@@ -62,24 +42,17 @@ module LabWiki::Plugin::Experiment
       end
 
       @slice = slice
-      ts = Time.now.iso8601.split('+')[0].gsub(':', '-')
-      @name = "#{self.user}-"
-      if (!name.nil? && name.to_s.strip.length > 0)
-        @name += "#{name.gsub(/\W+/, '_')}-"
-      end
-      @name +=  ts
-      @name.delete(' ')
-      @content_url = "exp:#{@name}"
-      url = @url
-      unless script = OMF::Web::ContentRepository.absolute_path_for(url)
-        warn "Can't find script '#{url}'"
-        return # TODO: Raise appropriate exception
-      end
-      info "Starting experiment name:#{@name} url: #{url} script: #{script}"
+      name = _create_name(name)
+      @content_url = "exp:#{name}"
+      # unless script_path = OMF::Web::ContentRepository.absolute_path_for(@url)
+        # warn "Can't find script '#{url}'"
+        # return # TODO: Raise appropriate exception
+      # end
+      info "Starting experiment name: '#{@name}' url: '#{@url}'"
 
       OMF::Web::SessionStore[:exps, :omf] ||= []
       #exp = { id: @name, instance: self }
-      exp = { id: @name }
+      exp = { id: name }
 
       if irods
         exp[:irods_path] = irods[:path]
@@ -87,23 +60,66 @@ module LabWiki::Plugin::Experiment
       end
       OMF::Web::SessionStore[:exps, :omf] << exp
 
-      create_oml_tables()
+      _create_oml_tables()
+      _schedule_job(name, properties, slice, irods)
 
-      props = {'experiment-id' => @name}
-      properties.each { |p| props[p[:name]] = p[:value] }
-      @properties.each { |p| p[:value] = props[p[:name]] ||= p[:default] }
 
-      @ec = LabWiki::Plugin::Experiment::RunExpController.new(@name, slice, script, props, @config_opts) do |etype, msg|
-        handle_exp_output @ec, etype, msg
+      @start_time = Time.now
+    end
+
+    def _schedule_job(name, properties, slice, irods)
+      job = {
+        name: name,
+      }
+      job[:slice] = slice if slice
+
+      unless @oedl_script
+        raise "Don't have the oedl script content"
       end
+      bc = Base64.encode64(Zlib::Deflate.deflate(@oedl_script))
+      job[:oedl_script] = {
+        type: "application/zip",
+        encoding: "base64",
+        content: bc.split("\n")
+      }
 
-      unless @state == :finished
-        @start_time = Time.now
-        persist
-        #self.persist [:name, :status, :props, :url, :start_time]
+      job[:ec_properties] = @exp_properties = ec_props = []
+      props = {}
+      properties.each {|p| props[p[:name]] = p }
+      @decl_properties.each do |p|
+        ep = {name: (name = p[:name])}
+        prop = props[name]
+        value = (prop ? prop[:value] : nil) || p[:default]
+        next unless value
 
-        @ec.start
+        # TODO: Define a more robust way for identifying resource properties
+        if name.start_with? 'res'
+          rname = (value == p[:default] ? nil : value) # ignore default values
+          type = 'node'
+          res = ep[:resource] = {type: type}
+          res[:name] = rname if rname
+        else
+          ep[:value] = value
+        end
+        ec_props << ep
       end
+      _post_job(job)
+      self.state = :pending
+    end
+
+    def _create_name(name)
+      ts = Time.now.iso8601.split('+')[0].gsub(':', '-')
+      @name = "#{self.user}-"
+      if (!name.nil? && name.to_s.strip.length > 0)
+        @name += "#{name.gsub(/\W+/, '_')}-"
+      end
+      @name +=  ts
+      @name.delete(' ')
+      @name
+    end
+
+    def state=(state)
+      @state = state
     end
 
     def stop_experiment()
@@ -113,29 +129,58 @@ module LabWiki::Plugin::Experiment
       @oml_connector.disconnect
     end
 
-    def create_oml_tables
-      if (dsp = OMF::Web::DataSourceProxy["status_#{@name}"])
-        @status_table = dsp.data_source
-      else
-        @status_table = OMF::OML::OmlTable.new "status_#{@name}", [[:time, :int], :phase, [:completion, :float], :message]
-        OMF::Web::DataSourceProxy.register_datasource @status_table rescue warn $!
-      end
+    def _create_oml_tables
+      @status_table = _create_oml_table('status', [[:time, :int], :phase, [:completion, :float], :message])
+      @log_table = _create_oml_table('log', [[:time, :int], :severity, :path, :message])
+      #@graph_table = _create_oml_table('graph', [:id, :description])
+      #@oml_connector = OmlConnector.new(@name, @graph_table, @config_opts[:oml])
+    end
 
-      if (dsp = OMF::Web::DataSourceProxy["log_#{@name}"])
-        @log_table = dsp.data_source
+    def _create_oml_table(tname, schema)
+      if dsp = OMF::Web::DataSourceProxy.find("#{tname}_#{@name}", false)
+        table = dsp.data_source
       else
-        @log_table = OMF::OML::OmlTable.new "log_#{@name}", [[:time, :int], :severity, :path, :message]
-        OMF::Web::DataSourceProxy.register_datasource @log_table rescue warn $!
+        table = OMF::OML::OmlTable.new "#{tname}_#{@name}", schema
+        OMF::Web::DataSourceProxy.register_datasource table rescue warn $!
       end
+      table
+    end
 
-      if (dsp = OMF::Web::DataSourceProxy["graph_#{@name}"])
-        @graph_table = dsp.data_source
-      else
-        @graph_table = OMF::OML::OmlTable.new "graph_#{@name}", [:id, :description]
-        OMF::Web::DataSourceProxy.register_datasource @graph_table rescue warn $!
+    def _post_job(job)
+      body = JSON.pretty_generate(job)
+      puts "JOB: #{body}"
+      EM.defer do
+        begin
+          unless js = @config_opts[:job_service]
+            raise "Missing configuration 'job_service"
+          end
+          req = Net::HTTP::Post.new(js[:path] || '/jobs', {'Content-Type' =>'application/json'})
+          # #req.basic_auth @user, @pass
+          req.body = body
+          response = Net::HTTP.new(js[:host], js[:port] || 80).start {|http| http.request(req) }
+          unless (rcode = response.code.to_i) == 200
+            warn "Job request failed (#{rcode}::#{rcode.class})- #{response.body}"
+            self.state = :failed
+          else
+            unless response.content_type == 'application/json'
+              raise "Wrong content type ('#{response.content_type} for job service reply, expected 'application/json'."
+            end
+            body = response.body
+            reply = JSON.parse(body)
+            puts '-------'
+            puts reply.inspect
+            puts '-------'
+            @uuid = reply["uuid"]
+            @job_url = reply["href"]
+            oml_url = reply["oml_db"]
+            @oml_connector = OmlConnector.new(oml_url, @status_table, @log_table, self)
+            self.state = reply["status"]
+          end
+        rescue => ex
+          error "While posting job to job service - #{ex}"
+          debug "While posting job to job service - \n\t#{ex.backtrace.join("\n\t")}"
+        end
       end
-
-      @oml_connector = OmlConnector.new(@name, @graph_table, @config_opts[:oml])
     end
 
     def to_json
@@ -143,46 +188,6 @@ module LabWiki::Plugin::Experiment
 
     def user
       OMF::Web::SessionStore[:id, :user] || 'unknown'
-    end
-
-    # Write internal data to persistent data store, provide an array of keys indicating what to store
-    #
-    # @param [Array] data_to_store indicate what data to store
-    #
-    # @example
-    #     persist [:name, :status, :props, :url]
-    #
-    def persist(data_to_store = [:status])
-
-      state = {
-        name: @name,
-        url: @content_url,
-        script_url: @url,
-        status: @state,
-        properties: @properties,
-        slice: @slice,
-        start_time: @start_time,
-        pid: @ec.pid,
-        timestamp: Time.now
-      }
-      puts "PERSIST: #{state.to_json}"
-
-      # data_to_store.each do |key|
-        # case key
-        # when :status
-          # redis.set ns(:status, @name), @state
-        # when :name
-          # redis.sadd ns(:experiments, user), @name
-        # when :props
-          # @properties.each { |p| redis.sadd ns(:props, @name), p.to_json }
-        # when :url
-          # redis.set ns(:url, @name), @url
-        # when :start_time
-          # redis.set ns(:start_time, @name), @start_time
-        # when :pid
-          # redis.set ns(:pid, @name), @ec.pid
-        # end
-      # end
     end
 
     def handle_exp_output(ec, etype, msg)
@@ -237,15 +242,17 @@ module LabWiki::Plugin::Experiment
     #
     def datasource_renderer
       lp = @log_proxy ||= OMF::Web::DataSourceProxy.for_source(:name => "log_#{@name}")[0]
+      js = lp.to_javascript()
 
-      gp = @graph_proxy ||= OMF::Web::DataSourceProxy.for_source(:name => "graph_#{@name}")[0]
-      #gp.to_javascript(1) + lp.to_javascript(1)
-      js = gp.to_javascript() + lp.to_javascript()
-      #puts "DS_RENDER >>> #{js}"
+      #gp = @graph_proxy ||= OMF::Web::DataSourceProxy.for_source(:name => "graph_#{@name}")[0]
+      #js += gp.to_javascript()
+
+
+      # TODO: What is this?????
       js.gsub '/_update/', 'http://localhost:5000/_update/'
     end
 
-    def parse_oidl_script(content)
+    def parse_oedl_script(content)
       parser = RubyParser.new
       sexp = parser.process(content)
       # Looking for 'defProperty'
@@ -270,11 +277,9 @@ module LabWiki::Plugin::Experiment
         ph
       end.compact
 
-      debug "parse_oidl_script: #{properties.inspect}"
+      debug "parse_oedl_script: #{properties.inspect}"
       properties
     end
-
-
   end # class
 
 end # module

@@ -1,15 +1,13 @@
 require 'labwiki/column_widget'
-require 'labwiki/plugin/experiment/run_exp_controller'
 require 'labwiki/plugin/experiment/experiment'
-require 'labwiki/plugin/experiment/redis_helper'
-require 'active_support/core_ext'
+#require 'active_support/core_ext'
 
 module LabWiki::Plugin::Experiment
 
   # Maintains the context for a particular experiment in this user context.
   #
   class ExperimentWidget < LabWiki::ColumnWidget
-    include LabWiki::Plugin::Experiment::RedisHelper
+    #include LabWiki::Plugin::Experiment::RedisHelper
 
     attr_reader :name
 
@@ -32,15 +30,15 @@ module LabWiki::Plugin::Experiment
           # LW instance still has such instance
         #  @experiment = exp_hash[:instance]
         #else
-        @experiment = LabWiki::Plugin::Experiment::Experiment.new(nil, @config_opts)
-        @experiment.recreate_experiment(omf_exp_id)
+        @experiment = LabWiki::Plugin::Experiment::Experiment.new(params, @config_opts)
+        #@experiment.recreate_experiment(omf_exp_id)
       else
-        @experiment = LabWiki::Plugin::Experiment::Experiment.new(nil, @config_opts)
+        @experiment = LabWiki::Plugin::Experiment::Experiment.new(params, @config_opts)
       end
 
-      if (url = params[:url])
-        @experiment.script = url
-      end
+      # if (url = params[:url])
+        # @experiment.script = url
+      # end
       @title = "NEW"
     end
 

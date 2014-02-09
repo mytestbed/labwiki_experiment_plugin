@@ -11,17 +11,18 @@ module LabWiki::Plugin::Experiment
   class OmlConnector < OMF::Base::LObject
     include MonitorMixin
 
-    def initialize(exp_id, graph_table, config_opts)
+    def initialize(oml_url, status_table, log_table, experiment)
       super()
-      @exp_id = exp_id
-      @graph_table = graph_table
-      @config_opts = config_opts
+      @status_table = status_table
+      @log_table = log_table
+      @experiment = experiment
+
       @graph_descriptions = []
       @connected = false
       @periodic_timers = {}
 
       EM.synchrony do
-        _connect(exp_id)
+        _connect(oml_url)
       end
     end
 
@@ -166,8 +167,8 @@ module LabWiki::Plugin::Experiment
       end
     end
 
-    def _connect(exp_id)
-      db_uri = "postgres://#{@config_opts[:user]}:#{@config_opts[:pwd]}@#{@config_opts[:host]}/#{exp_id}"
+    def _connect(db_uri)
+      #db_uri = "postgres://#{@config_opts[:user]}:#{@config_opts[:pwd]}@#{@config_opts[:host]}/#{exp_id}"
       info "Attempting to connect to OML backend (DB) on '#{db_uri}' - #{object_id}-#{Thread.current}"
 
       t_connect = EM::Synchrony.add_periodic_timer(10) do

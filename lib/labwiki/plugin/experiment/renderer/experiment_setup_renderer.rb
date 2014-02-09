@@ -11,7 +11,7 @@ module LabWiki::Plugin::Experiment
 
     def render_start_form
       fid = "f#{self.object_id}"
-      properties = @experiment.properties
+      properties = @experiment.decl_properties
       #puts "EXP: #{@experiment}--#{properties}"
       form :id => fid, :class => 'start-form' do
         if properties
@@ -53,7 +53,7 @@ module LabWiki::Plugin::Experiment
 
     def render_javascript(fid)
       opts = {
-        :properties => @experiment.properties,
+        :properties => @experiment.decl_properties,
         :widget_id => @widget.widget_id,
         :url => "lw:execute/experiment?url=#{@experiment.url}",
         :script => @experiment.url
@@ -85,7 +85,7 @@ module LabWiki::Plugin::Experiment
     end
 
     def render_properties
-      properties = @experiment.properties
+      properties = @experiment.decl_properties
       #puts ">>>> #{properties}"
       div :class => 'experiment-status' do
         if properties
