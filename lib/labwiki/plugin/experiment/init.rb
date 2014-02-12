@@ -1,7 +1,5 @@
 
-module LabWiki::Plugin
-  module Experiment; end
-end
+require 'labwiki/plugin/experiment/version'
 
 require 'labwiki/plugin/experiment/experiment_widget'
 require 'labwiki/plugin/experiment/renderer/experiment_setup_renderer'
@@ -9,14 +7,14 @@ require 'labwiki/plugin/experiment/renderer/experiment_running_renderer'
 require 'labwiki/plugin/experiment/experiment_search_proxy'
 
 LabWiki::PluginManager.register :experiment, {
-  # :search => lambda do ||
-  # end,
+  :version => LabWiki::Plugin::Experiment::VERSION,
+
   :selector => lambda do ||
   end,
   :on_session_init => lambda do
     #repo = OMF::Web::ContentRepository.register_repo(id, opts)
     #OMF::Web::SessionStore[:execute, :repos] << repo
-    puts ">>>> EXPERIMENT NEW SESSION"
+    #puts ">>>> EXPERIMENT NEW SESSION"
   end,
   :widgets => [
     {
@@ -59,6 +57,7 @@ LabWiki::PluginManager.register :experiment, {
     :experiment_running_renderer => LabWiki::Plugin::Experiment::ExperimentRunningRenderer
   },
   :resources => File.join(File.dirname(__FILE__), 'resource'),
-  :config_ru => File.join(File.dirname(__FILE__), 'config.ru')
+  :config_ru => File.join(File.dirname(__FILE__), 'config.ru'),
+  :init_js => 'js/experiment_init.js'
 }
 
