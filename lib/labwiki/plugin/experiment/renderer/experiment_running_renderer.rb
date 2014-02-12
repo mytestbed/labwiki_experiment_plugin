@@ -12,7 +12,7 @@ module LabWiki::Plugin::Experiment
       render_logging
 
       javascript %{
-        require(['plugin/experiment/js/experiment_monitor', 'js/data_source_repo'], function(experiment_monitor, ds) {
+        require(['plugin/experiment/js/experiment_monitor', 'omf/data_source_repo'], function(experiment_monitor, ds) {
           #{@experiment.datasource_renderer};
           var r_#{object_id} = experiment_monitor('#{@experiment.name}');
         })
