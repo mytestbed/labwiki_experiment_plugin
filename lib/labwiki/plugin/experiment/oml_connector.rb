@@ -7,6 +7,8 @@ require 'time'
 
 require 'omf_oml/table'
 require 'labwiki/plugin/experiment/util'
+require 'labwiki/plugin/experiment/log_adapter'
+require 'labwiki/plugin/experiment/ec_adapter'
 
 module LabWiki::Plugin::Experiment
   # Establishes a connection to the database associated with a
@@ -28,21 +30,25 @@ module LabWiki::Plugin::Experiment
       table
     end
 
+    attr_reader :log_adapter, :ec_adapter
 
-    def initialize(oml_url, status_table, log_adapter, experiment)
+#    def initialize(oml_url, status_table, log_adapter, experiment)
+    def initialize(experiment)
       super()
-      @status_table = status_table
-      @log_adapter = log_adapter
+      # @status_table = status_table
+      # @log_adapter = log_adapter
+      @log_adapter = LogAdapter.new(experiment)
+      @ec_adapter = EcAdapter.new(experiment)
       @experiment = experiment
 
       @graph_descriptions = []
       @connected = false
       @periodic_timers = {}
 
-      @oml_url = oml_url
-      EM.synchrony do
-        _connect(oml_url)
-      end
+      # @oml_url = oml_url
+      # EM.synchrony do
+        # _connect(oml_url)
+      # end
     end
 
     def disconnect
@@ -62,13 +68,15 @@ module LabWiki::Plugin::Experiment
         end
         @periodic_timers.clear
       end
+      @log_adapter.disconnect
+      @ec_adapter.disconnect
     end
 
     def connected?
       @connected
     end
 
-    def _connect(db_uri)
+    def connect(db_uri)
       #db_uri = "postgres://#{@config_opts[:user]}:#{@config_opts[:pwd]}@#{@config_opts[:host]}/#{exp_id}"
       info "Attempting to connect to OML backend (DB) on '#{db_uri}'"
       t_connect = LabWiki::Plugin::Experiment::Util::retry(10) do |hdl|
@@ -100,6 +108,7 @@ module LabWiki::Plugin::Experiment
       debug "Connected to OML backend '#{@oml_url}'"
 
       @log_adapter.on_connected(connection)
+      @ec_adapter.on_connected(connection)
     end
   end # class
 end # module

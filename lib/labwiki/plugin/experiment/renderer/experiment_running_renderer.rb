@@ -11,10 +11,11 @@ module LabWiki::Plugin::Experiment
       render_graphs
       render_logging
 
+      props = (@experiment.exp_properties || []).to_json
       javascript %{
         require(['plugin/experiment/js/experiment_monitor', 'omf/data_source_repo'], function(experiment_monitor, ds) {
           #{@experiment.datasource_renderer};
-          var r_#{object_id} = experiment_monitor('#{@experiment.name}');
+          var r_#{object_id} = experiment_monitor('#{@experiment.name}', '#{@data_id}', '#{props}');
         })
       }
 
@@ -35,19 +36,29 @@ module LabWiki::Plugin::Experiment
       #puts ">>>> #{properties}"
       render_header "Experiment Properties"
       div :class => 'experiment-status' do
-        if properties
-          table :class => 'experiment-status table table-bordered', :style => 'width: auto'  do
-            render_field_static :name => 'Name', :value => @experiment.name
-            surl = @experiment.url
-            render_field_static :name => 'Script', value: surl, url: "lw:prepare/source_edit?url=#{surl}"
-            if @experiment.slice
-              render_field_static :name => 'Slice', :value => @experiment.slice
-            end
-            properties.each_with_index do |prop, i|
-              prop[:index] = i
-              render_field_static(prop, false)
-            end
+        table :class => 'experiment-status table table-bordered', :style => 'width: auto'  do
+          render_field_static :name => 'Name', :value => @experiment.name
+          render_field_static :name => 'Status', :value => @experiment.state
+          render_field_static :name => 'UUID', :value => @experiment.uuid
+          surl = @experiment.url
+          render_field_static :name => 'Script', value: surl, url: "lw:prepare/source_edit?url=#{surl}"
+          if @experiment.slice
+            render_field_static :name => 'Slice', :value => @experiment.slice
           end
+        end
+        topts = {
+          id: "#{@data_id}_prop_table",
+          class: 'experiment-properties table table-bordered',
+          style: 'width: auto'
+        }
+        table topts do
+          # if properties
+            # properties.each_with_index do |prop, i|
+              # prop[:index] = i
+              # prop[:html_id] = "#{@data_id}_p_#{prop[:name]}"
+              # render_field_static(prop, false)
+            # end
+          # end
         end
       end
     end

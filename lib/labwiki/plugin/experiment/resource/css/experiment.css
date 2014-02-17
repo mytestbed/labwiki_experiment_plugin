@@ -33,6 +33,15 @@ div.experiment-log {
   margin: 7px 0 7px 7px;
 }
 
+/*** Properties ***/
+div.experiment-status span.undefined {
+  font-style: oblique;
+}
+
+div.experiment-status td.desc {
+  min-width: 60px;
+}
+
 /*** Log messages ***/
 table.experiment-log td,
 table.experiment-log tr {

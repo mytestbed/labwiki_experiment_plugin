@@ -6,7 +6,6 @@ require 'omf-web/content/repository'
 require 'omf-web/session_store'
 
 require 'labwiki/plugin/experiment/oml_connector'
-require 'labwiki/plugin/experiment/log_adapter'
 
 # HACK to read data source from data source proxy, this should go to omf_web
 # module OMF::Web
@@ -20,26 +19,41 @@ module LabWiki::Plugin::Experiment
   # Maintains the context for a particular experiment.
   #
   class Experiment < OMF::Base::LObject
-    attr_reader :name, :state, :url, :slice, :decl_properties, :exp_properties, :session_context
+    DEF_MONITOR_INTERVAL = 5 # How frequently to check on Job Service
+
+    attr_reader :name, :uuid, :state, :url, :slice, :decl_properties, :exp_properties, :session_context
 
     def initialize(params, config_opts)
       debug "PARAMS: #{params}, CONFIG: #{config_opts}"
 
-      @state = :new
-      @url = params[:url]
-      if (@url)
-        @oedl_script = OMF::Web::ContentRepository.read_content(@url, {})
-        begin
-          @decl_properties = parse_oedl_script(@oedl_script)
-        rescue => ex
-          warn "Parsing OEDL script '#{@url}' - #{ex}"
-          @decl_properties = []
+      case params[:mime_type]
+      when "text/ruby"
+        @state = :new
+        @url = params[:url]
+        if (@url)
+          @oedl_script = OMF::Web::ContentRepository.read_content(@url, {})
+          begin
+            @decl_properties = parse_oedl_script(@oedl_script)
+          rescue => ex
+            warn "Parsing OEDL script '#{@url}' - #{ex}"
+            @decl_properties = []
+          end
         end
+      else
+        @name = params[:name]
+        @state = :unknown
+        @url = params[:url]
+        @decl_properties = []
+        _init_oml()
+        _query_job_status(@url)
+      end
+
+      unless @job_service = config_opts[:job_service]
+        raise "Missing configuration 'job_service"
       end
 
       @config_opts = config_opts
       @session_context = OMF::Web::SessionStore.session_context
-
     end
 
     def start_experiment(properties, slice, name, irods = {})
@@ -67,7 +81,7 @@ module LabWiki::Plugin::Experiment
       end
       OMF::Web::SessionStore[:exps, :omf] << exp
 
-      _create_oml_tables()
+      _init_oml()
       _schedule_job(name, properties, slice, irods)
 
 
@@ -100,8 +114,8 @@ module LabWiki::Plugin::Experiment
         next unless value
 
         # TODO: Define a more robust way for identifying resource properties
-        #if name.start_with? 'res'
-        if false # TODO: Right now ignore resources
+        if name.start_with? 'res'
+        # if false # TODO: Right now ignore resources
           rname = (value == p[:default] ? nil : value) # ignore default values
           type = 'node'
           res = ep[:resource] = {type: type}
@@ -121,8 +135,8 @@ module LabWiki::Plugin::Experiment
       if (!name.nil? && name.to_s.strip.length > 0)
 
         # TODO: FOR DEBUGGING ONLY
-        @name = name
-        return @name
+        # @name = name
+        # return @name
 
         @name += "#{name.gsub(/\W+/, '_')}-"
       end
@@ -147,25 +161,28 @@ module LabWiki::Plugin::Experiment
       @oml_connector.disconnect
     end
 
-    def _create_oml_tables
+    def _init_oml
+
       #status_schema = [[:time, :int], :phase, [:completion, :float], :message]
       status_schema = [:type, :message]
       @status_table = OmlConnector.create_oml_table('status', status_schema, self)
 
-      @log_adapter = LogAdapter.new(self)
-      @log_table = @log_adapter.log_table
+
+      @oml_connector = OmlConnector.new(self)
+      # @log_adapter = LogAdapter.new(self)
+      # @log_table = @log_adapter.log_table
     end
 
 
     def _post_job(job)
       body = JSON.pretty_generate(job)
-      puts "JOB: #{body}"
+      debug "JOB: #{body}"
       EM.defer do
         begin
           unless js = @config_opts[:job_service]
             raise "Missing configuration 'job_service"
           end
-          req = Net::HTTP::Post.new(js[:path] || '/jobs', {'Content-Type' =>'application/json'})
+          req = Net::HTTP::Post.new(js[:path] || '/jobs?_level=1', {'Content-Type' =>'application/json'})
           # #req.basic_auth @user, @pass
           req.body = body
           response = Net::HTTP.new(js[:host], js[:port] || 80).start {|http| http.request(req) }
@@ -178,18 +195,37 @@ module LabWiki::Plugin::Experiment
             end
             body = response.body
             reply = JSON.parse(body)
-            puts '-------'
-            puts reply.inspect
-            puts '-------'
+            debug "Job service reply: #{reply.inspect}"
             @uuid = reply["uuid"]
+            send_status(:ex_prop, {uuid: @uuid})
+            self.state = reply["status"]
             @job_url = reply["href"]
             oml_url = reply["oml_db"]
-            @oml_connector = OmlConnector.new(oml_url, @status_table, @log_adapter, self)
-            self.state = reply["status"]
+            @oml_connector.connect(oml_url)
+            #_monitor_job(@uuid)
           end
         rescue => ex
           error "While posting job to job service - #{ex}"
           debug "While posting job to job service - \n\t#{ex.backtrace.join("\n\t")}"
+        end
+      end
+    end
+
+    def _query_job_status(url)
+      EventMachine.synchrony do
+        begin
+          resp = EventMachine::HttpRequest.new(url).get(query: {_level: 0})
+          unless (rcode = resp.response_header.status) == 200
+            warn "Job update failed (#{rcode})- #{resp.response}"
+          else
+            reply = JSON.parse(resp.response)
+            self.state = reply["status"]
+            @uuid = reply["uuid"]
+            send_status(:ex_prop, {uuid: @uuid})
+            @oml_connector.connect(reply["oml_db"])
+          end
+        rescue => ex
+          warn "Exception while searching job service - #{ex}"
         end
       end
     end
@@ -201,38 +237,15 @@ module LabWiki::Plugin::Experiment
       OMF::Web::SessionStore[:id, :user] || 'unknown'
     end
 
-
-    # def process_exp_log_msg(msg)
-      # if (m = msg.match /^.*(INFO|WARN|ERROR|DEBUG|FATAL)\s+(.*)$/)
-        # severity = m[1].to_sym
-        # path = ''
-        # message = m[-1]
-        # return if message.start_with? '------'
-#
-        # if (m = message.match(/^\s*REPORT:([A-Za-z:]*)\s*(.*)/))
-          # case m[1]
-          # when /START:/
-            # @gd = LabWiki::Plugin::Experiment::GraphDescription.new
-          # when /STOP/
-            # @oml_connector.add_graph(@gd)
-            # @gd = nil
-          # else
-            # @gd.parse(m[1], m[2])
-          # end
-          # return
-        # end
-#
-        # log_msg_row = [Time.now - @start_time, severity, path, message]
-        # @log_table.add_row(log_msg_row)
-      # end
-    # end
-
     # As widgets are dynamically added, we need register datasources from within the
     # widget renderer.
     #
     def datasource_renderer
       js = []
-      lp = @log_proxy ||= OMF::Web::DataSourceProxy.for_source(:name => @log_table.name)[0]
+      #lp = @log_proxy ||= OMF::Web::DataSourceProxy.for_source(:name => @log_table.name)[0]
+      lp = @log_proxy ||= @oml_connector.log_adapter.data_source_proxy()
+      js << lp.to_javascript()
+      lp = @ec_proxy ||= @oml_connector.ec_adapter.data_source_proxy()
       js << lp.to_javascript()
 
       lp = @status_proxy ||= OMF::Web::DataSourceProxy.for_source(:name => @status_table.name)[0]

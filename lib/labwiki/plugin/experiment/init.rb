@@ -31,8 +31,8 @@ LabWiki::PluginManager.register :experiment, {
         end
       end,
       :widget_class => LabWiki::Plugin::Experiment::ExperimentWidget,
-      :search => lambda do |pat, opts|
-        LabWiki::Plugin::Experiment::ExperimentSearchProxy.instance.find(pat, opts)
+      :search => lambda do |pat, opts, wopts|
+        LabWiki::Plugin::Experiment::ExperimentSearchProxy.instance.find(pat, opts, wopts)
       end
 
 
@@ -58,6 +58,6 @@ LabWiki::PluginManager.register :experiment, {
   },
   :resources => File.join(File.dirname(__FILE__), 'resource'),
   :config_ru => File.join(File.dirname(__FILE__), 'config.ru'),
-  :init_js => 'js/experiment_init.js'
+  :global_js => 'js/experiment_global.js'
 }
 

@@ -8,7 +8,7 @@ module LabWiki::Plugin::Experiment
     DEF_QUERY_INTERVAL = 3 # secs
     DEF_QUERY_LIMIT = 100
 
-    attr_reader :log_table
+    attr_reader :log_table, :data_source_proxy
 
     def initialize(experiment)
       super()
@@ -16,6 +16,7 @@ module LabWiki::Plugin::Experiment
 
       log_schema = [[:time, :int32], [:level, :int32], :logger, :data]
       @log_table = OmlConnector.create_oml_table('log', log_schema, experiment)
+      @data_source_proxy = OMF::Web::DataSourceProxy.for_source(:name => @log_table.name)[0]
     end
 
     def on_connected(connection)
@@ -24,7 +25,7 @@ module LabWiki::Plugin::Experiment
       schema = OMF::OML::OmlSchema.new [:time, [:level, :integer], :logger, :data]
       start_time = nil
 
-      q = connection[:omf_ec_log_log].select(:time, :level, :logger, :data)
+      q = connection[:omf_ec_log].select(:time, :level, :logger, :data)
       offset = 0
       handler = _log_processor
       @t_q = LabWiki::Plugin::Experiment::Util::retry(DEF_QUERY_INTERVAL) do

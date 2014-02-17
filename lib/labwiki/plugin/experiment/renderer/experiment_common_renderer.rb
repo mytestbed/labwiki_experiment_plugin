@@ -11,11 +11,11 @@ module LabWiki::Plugin::Experiment
       @experiment = experiment
       #@wopts = wopts
       @tab_index = 30
+      @data_id = "e#{object_id}"
     end
 
     def content
       link :href => '/resource/plugin/experiment/css/experiment.css', :rel => "stylesheet", :type => "text/css"
-      @data_id = "e#{object_id}"
       div :class => "experiment-description", :id => @data_id do
         render_content
       end
@@ -26,10 +26,20 @@ module LabWiki::Plugin::Experiment
       }
     end
 
+    def title_info
+      {
+        img_src: '/resource/plugin/experiment/img/experiment2-32.png',
+        title: @widget.title,
+        #sub_title: '????',
+        widget_id: @data_id
+      }
+    end
+
+
     def render_field(index, prop)
       # {:default=>"node2", :comment=>"ID of a node", :name=>"res2", :size => 16}
       comment = prop[:comment]
-      name = prop[:name]
+      name = prop[:name].downcase
       type = prop[:type] || :text
 
       fname = "prop" + (index >= 0 ? index.to_s : name)
@@ -62,16 +72,19 @@ module LabWiki::Plugin::Experiment
     def render_field_static(prop, with_comment = true)
       # {:default=>"node2", :comment=>"ID of a node", :name=>"res2", :size => 16}
       comment = prop[:comment]
-      name = prop[:name]
-      index = prop[:index]
-      fname = "prop" + (index ? index.to_s : name)
-      tr :class => fname do
+      name = prop[:name].downcase
+      tr do
         td name + ':', :class => "desc"
-        td :class => "input #{fname}", :colspan => (comment ? 1 : 2) do
+        td :class => "input", :colspan => (comment ? 1 : 2) do
           if url = prop[:url]
             a prop[:value], href: url
           else
-            span prop[:value]
+            v = prop[:value]
+            opts = {
+              :class => (v ? 'defined' : 'undefined'),
+              :id => (prop[:html_id] || "#{@data_id}_s_#{name}")
+            }
+            span v || 'undefined', opts
           end
         end
         if with_comment && comment

@@ -14,12 +14,12 @@ module LabWiki::Plugin::Experiment
     # 'done' if it doesn't want to called any longer.
     #
     class RetryHandler < OMF::Base::LObject
-      def initialize(interval = DEF_RETRY_INTERVAL, &block)
+      def initialize(interval = DEF_RETRY_INTERVAL, call_immediately = true, &block)
         @block = block
         @timer = nil
         @active = true
         EM.next_tick do
-          _call
+          _call if call_immediately
           if @active # ok, first time around didn't solve it
             @timer = EM.add_periodic_timer(interval) do
               _call()
@@ -44,7 +44,11 @@ module LabWiki::Plugin::Experiment
           begin
             (@block.arity == 0) ? @block.call() : @block.call(self)
           rescue => ex
-            warn "Retry '#{@block}' failed - #{ex}"
+            if m = ex.message.match(/ERROR:  relation "(.*)" does not exist/)
+              debug "Table '#{m[1]}' doesn't exist yet"
+            else
+              warn "Retry '#{@block}' failed - #{ex.class}<#{ex.to_s.gsub("\n", ' | ')[0 ... 50]}>"
+            end
           end
         end.resume
       end

@@ -35,11 +35,6 @@ module LabWiki::Plugin::Experiment
       else
         @experiment = LabWiki::Plugin::Experiment::Experiment.new(params, @config_opts)
       end
-
-      # if (url = params[:url])
-        # @experiment.script = url
-      # end
-      @title = "NEW"
     end
 
     def on_start_experiment(params, req)
