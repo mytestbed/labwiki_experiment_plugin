@@ -57,6 +57,7 @@ module LabWiki::Plugin::Experiment
     end
 
     def start_experiment(properties, slice, name, irods = {})
+      #puts "PROP - #{properties.inspect}"
       unless @state == :new
         warn "Attempt to start an already running or finished experiment"
         return # TODO: Raise appropriate exception
@@ -111,6 +112,7 @@ module LabWiki::Plugin::Experiment
         ep = {name: (name = p[:name])}
         prop = props[name]
         value = (prop ? prop[:value] : nil) || p[:default]
+        #puts ">> VALUE: #{value} - pv: #{prop[:value]} def: #{p[:default].inspect}"
         next unless value
 
         # TODO: Define a more robust way for identifying resource properties
@@ -267,8 +269,7 @@ module LabWiki::Plugin::Experiment
         next unless sx[0] == :call
         next unless sx[2] == :defProperty
 
-        #puts "PARSE: #{params}--#{sx}"
-        #next unless params.is_a? Hash
+        #puts "PARSE: #{sx}"
         ph = {}
         [:name, :default, :comment].each_with_index do |key, i|
           ph[key] = _parse_sex_string(sx[3 + i])
@@ -285,8 +286,14 @@ module LabWiki::Plugin::Experiment
     end
 
     def _parse_sex_string(sx)
-      return nil unless sx[0] == :str
-      return sx[1]
+      case sx[0]
+      when :str
+        return sx[1];
+      when :lit
+        #puts "LIT #{sx[1]}-#{sx[1].class}"
+        return sx[1];
+      end
+      nil
     end
   end # class
 
