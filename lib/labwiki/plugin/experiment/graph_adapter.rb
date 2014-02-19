@@ -66,13 +66,6 @@ module LabWiki::Plugin::Experiment
       end
     end
 
-    # return a hash describing hte graph suitable for the browser side
-    # renderer
-    #
-    # def render_option()
-      # @opts
-    # end
-
     def _discover_schema(name, query)
       debug "Initializing mstream '#{name}' (#{query})"
 

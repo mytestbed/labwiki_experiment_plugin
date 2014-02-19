@@ -51,28 +51,6 @@ module LabWiki::Plugin::Experiment
       end
     end
 
-    # def handle_exp_output(ec, etype, msg)
-      # begin
-        # debug "output:#{etype}: #{msg.inspect}"
-#
-        # case etype
-        # when 'STARTED'
-          # info "Experiment #{@name} started. PID: #{ec.pid}"
-          # @state = :running
-          # self.persist [:status, :pid]
-        # when 'LOG'
-          # process_exp_log_msg(msg)
-        # when 'DONE.OK'
-          # @state = :finished
-          # self.persist [:status]
-          # @oml_connector.disconnect
-        # end
-      # rescue Exception => ex
-        # warn "EXCEPTION: #{ex}"
-        # debug ex.backtrace.join("\n")
-      # end
-    # end
-
   end # class
 end # module
 

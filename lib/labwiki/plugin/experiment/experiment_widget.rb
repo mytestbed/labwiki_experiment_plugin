@@ -24,17 +24,12 @@ module LabWiki::Plugin::Experiment
 
     def on_get_content(params, req)
       debug "on_get_content: '#{params.inspect}'"
-
-      if (omf_exp_id = params[:omf_exp_id])
-        #if (exp_hash = OMF::Web::SessionStore[:exps, :omf] && OMF::Web::SessionStore[:exps, :omf].find { |v| v[:id] == omf_exp_id })
-          # LW instance still has such instance
-        #  @experiment = exp_hash[:instance]
-        #else
-        @experiment = LabWiki::Plugin::Experiment::Experiment.new(params, @config_opts)
-        #@experiment.recreate_experiment(omf_exp_id)
-      else
-        @experiment = LabWiki::Plugin::Experiment::Experiment.new(params, @config_opts)
-      end
+      @experiment = LabWiki::Plugin::Experiment::Experiment.new(params, @config_opts)
+      # if (omf_exp_id = params[:omf_exp_id])
+        # @experiment = LabWiki::Plugin::Experiment::Experiment.new(params, @config_opts)
+      # else
+        # @experiment = LabWiki::Plugin::Experiment::Experiment.new(params, @config_opts)
+      # end
     end
 
     def on_start_experiment(params, req)
