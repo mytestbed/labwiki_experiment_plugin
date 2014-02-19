@@ -10,7 +10,7 @@ module LabWiki::Plugin::Experiment
     include MonitorMixin
 
     DEF_QUERY_INTERVAL = 3 # secs
-    DEF_QUERY_LIMIT = 100
+    DEF_QUERY_LIMIT = 1000
 
     CLASS2TYPE = {
       Fixnum => 'int32',
@@ -87,7 +87,7 @@ module LabWiki::Plugin::Experiment
       end
       table = nil
       @experiment.session_context.call do
-        table = OmlConnector.create_oml_table(name, schema, @experiment)
+        table = OmlConnector.create_oml_table("#{name}_#{object_id}", schema, @experiment)
       end
       #puts "TABLE>>> #{table}"
       _report_table name, table
@@ -124,7 +124,7 @@ module LabWiki::Plugin::Experiment
             q = "#{query} LIMIT #{limit} OFFSET #{offset}"
             rows = @connection.fetch(q).all
             unless rows.empty?
-              debug ">>> Found #{rows.size} rows "
+              debug ">>> Found #{rows.size} rows - offset #{offset}"
               row_values = rows.map do |v|
                 if v.is_a? Hash
                   v.values
