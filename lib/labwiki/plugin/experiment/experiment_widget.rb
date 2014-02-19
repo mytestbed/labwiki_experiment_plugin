@@ -1,13 +1,11 @@
 require 'labwiki/column_widget'
 require 'labwiki/plugin/experiment/experiment'
-#require 'active_support/core_ext'
 
 module LabWiki::Plugin::Experiment
 
   # Maintains the context for a particular experiment in this user context.
   #
   class ExperimentWidget < LabWiki::ColumnWidget
-    #include LabWiki::Plugin::Experiment::RedisHelper
 
     attr_reader :name
 

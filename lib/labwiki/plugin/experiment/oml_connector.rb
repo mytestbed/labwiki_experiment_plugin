@@ -32,11 +32,8 @@ module LabWiki::Plugin::Experiment
 
     attr_reader :log_adapter, :ec_adapter
 
-#    def initialize(oml_url, status_table, log_adapter, experiment)
     def initialize(experiment)
       super()
-      # @status_table = status_table
-      # @log_adapter = log_adapter
       @log_adapter = LogAdapter.new(experiment)
       @ec_adapter = EcAdapter.new(experiment)
       @experiment = experiment
@@ -44,11 +41,6 @@ module LabWiki::Plugin::Experiment
       @graph_descriptions = []
       @connected = false
       @periodic_timers = {}
-
-      # @oml_url = oml_url
-      # EM.synchrony do
-        # _connect(oml_url)
-      # end
     end
 
     def disconnect
