@@ -23,9 +23,7 @@ module LabWiki::Plugin::Experiment
 
     def render_toolbar
       div :class => 'widget-toolbar' do
-        #if @experiment.state.to_s == 'running'
-        button "Stop experiment", :id => 'btn-stop-experiment', :class => 'btn-stop-experiment btn btn-danger'
-        #end
+        button "Stop experiment", :id => 'btn-stop-experiment', :class => 'btn-stop-experiment btn btn-danger', :style => 'display: none;'
         button "Dump", :id => 'btn-dump', :exp_id => @experiment.name, :class => 'btn-dump btn btn-default'
         div :class => 'alert-dump', :style => "display: none; margin: 7px 0 7px 7px; padding: 5px;"
       end
