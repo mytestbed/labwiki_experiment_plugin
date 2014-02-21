@@ -41,6 +41,7 @@ module LabWiki::Plugin::Experiment
     end
 
     def on_stop_experiment(params, req)
+      debug "STOP EXPERIMENT as requested>>> #{params.inspect}"
       @experiment.stop_experiment
     end
 

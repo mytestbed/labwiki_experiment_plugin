@@ -156,11 +156,8 @@ module LabWiki::Plugin::Experiment
       @status_table << [type, msg]
     end
 
-    def stop_experiment()
-      self.state = :finished
-      # @ec.stop
-      # self.persist [:status]
-      @oml_connector.disconnect
+    def stop_experiment
+      _stop_job
     end
 
     def _init_oml
@@ -209,6 +206,19 @@ module LabWiki::Plugin::Experiment
         rescue => ex
           error "While posting job to job service - #{ex}"
           debug "While posting job to job service - \n\t#{ex.backtrace.join("\n\t")}"
+        end
+      end
+    end
+
+    def _stop_job
+      debug "SEND job stop request to #{@job_url}>>>"
+      EM.synchrony do
+        begin
+          response = EM::HttpRequest.new(@job_url).post(body: JSON.pretty_generate({status: 'aborted'}),
+                                                        head: { 'Content-Type' => 'application/json' })
+          @oml_connector.disconnect
+        rescue => e
+          warn "Exception while stopping a job - #{ex}"
         end
       end
     end
