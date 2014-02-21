@@ -217,8 +217,9 @@ module LabWiki::Plugin::Experiment
           response = EM::HttpRequest.new(@job_url).post(body: JSON.pretty_generate({status: 'aborted'}),
                                                         head: { 'Content-Type' => 'application/json' })
           @oml_connector.disconnect
-        rescue => e
+        rescue => ex
           warn "Exception while stopping a job - #{ex}"
+          debug "While stopping a job - \n\t#{ex.backtrace.join("\n\t")}"
         end
       end
     end
