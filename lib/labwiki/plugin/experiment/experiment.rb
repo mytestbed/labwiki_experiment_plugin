@@ -56,7 +56,7 @@ module LabWiki::Plugin::Experiment
       @session_context = OMF::Web::SessionStore.session_context
     end
 
-    def start_experiment(properties, slice, name, irods = {})
+    def start_experiment(properties, slice, name, gimi_info = {})
       #puts "PROP - #{properties.inspect}"
       unless @state == :new
         warn "Attempt to start an already running or finished experiment"
@@ -72,28 +72,18 @@ module LabWiki::Plugin::Experiment
       # end
       info "Starting experiment name: '#{@name}' url: '#{@url}'"
 
-      OMF::Web::SessionStore[:exps, :omf] ||= []
-      #exp = { id: @name, instance: self }
-      exp = { id: name }
-
-      if irods
-        exp[:irods_path] = irods[:path]
-        exp[:exp_name] = irods[:exp_name]
-      end
-      OMF::Web::SessionStore[:exps, :omf] << exp
-
       _init_oml()
-      _schedule_job(name, properties, slice, irods)
-
+      _schedule_job(name, properties, slice, gimi_info)
 
       @start_time = Time.now
     end
 
-    def _schedule_job(name, properties, slice, irods)
+    def _schedule_job(name, properties, slice, gimi_info)
       job = {
         name: name,
       }
       job[:slice] = slice if slice
+      job[:irods_path] = gimi_info[:irods_path]
 
       unless @oedl_script
         raise "Don't have the oedl script content"

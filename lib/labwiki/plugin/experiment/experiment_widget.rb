@@ -32,12 +32,9 @@ module LabWiki::Plugin::Experiment
 
     def on_start_experiment(params, req)
       debug "START EXPERIMENT>>> #{params.inspect}"
-      irods = {}
-      irods[:path] = params[:irods_path]
-      irods[:exp_name] = params[:gimi_exp]
-      irods[:path] ||= "/tempZone/home/rods/user1"
+      gimi_info = { irods_path: params[:irods_path] }
       slice = params[:slice]
-      @experiment.start_experiment((params[:properties] || {}).values, slice, params[:name], irods)
+      @experiment.start_experiment((params[:properties] || {}).values, slice, params[:name], gimi_info)
     end
 
     def on_stop_experiment(params, req)
