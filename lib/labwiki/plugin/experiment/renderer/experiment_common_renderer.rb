@@ -44,7 +44,7 @@ module LabWiki::Plugin::Experiment
 
       fname = "prop" + (index >= 0 ? index.to_s : name)
       tr :class => fname do
-        td name + ':', :class => "desc" unless type.to_sym == :hidden
+        td name.gsub(/_/, ' ') + ':', :class => "desc" unless type.to_sym == :hidden
         td :class => "input #{fname}", :colspan => (comment ? 1 : 2) do
           case type.to_sym
           when :text
