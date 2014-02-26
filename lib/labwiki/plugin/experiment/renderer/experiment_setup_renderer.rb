@@ -68,7 +68,7 @@ module LabWiki::Plugin::Experiment
             window.exp_list = new ExpListView();
           }
 
-          window.exp_list.setElement($('select[name="propexperiment"]'));
+          window.exp_list.setElement($('select[name="propexperiment_context"]'));
           window.exp_list.setupExpSelect();
         }
       end
