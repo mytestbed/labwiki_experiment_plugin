@@ -24,7 +24,7 @@ module LabWiki::Plugin::Experiment
       #schema = OMF::OML::OmlSchema.new [:time, [:level, :integer], :logger, :data]
       start_time = nil
 
-      q = connection[:omf_ec_meta_data].select(:domain, :key, :value)
+      q = connection[:omf_ec_meta_data].select(:domain, :key, :value).order(:oml_seq)
       offset = 0
       handler = _row_processor
       @t_q = LabWiki::Plugin::Experiment::Util::retry(DEF_QUERY_INTERVAL) do

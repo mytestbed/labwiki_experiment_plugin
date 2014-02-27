@@ -32,10 +32,7 @@ module LabWiki::Plugin::Experiment
         q.limit(DEF_QUERY_LIMIT, offset).each do |m|
           row = schema.hash_to_row(m)
           ts = Time.parse(row[0])
-          unless start_time
-            @experiment.state = :running
-            start_time = ts
-          end
+          start_time ||= ts
           row[0] = ts - start_time
           handler.call(row)
           offset += 1
@@ -44,7 +41,7 @@ module LabWiki::Plugin::Experiment
       end
     end
 
-    # Returns a lmbda to be called for every incoming log message
+    # Returns a lambda to be called for every incoming log message
     # Primary function is to filter out graph descriptions and pass on the
     # rest to the log_table so it can be displyed on the UI
     #
@@ -60,8 +57,6 @@ module LabWiki::Plugin::Experiment
             error "Unfinished graph description detected - #{gd}" if gd
             gd = LabWiki::Plugin::Experiment::GraphAdapter.new(@experiment, @connection)
           when /STOP/
-            #@oml_connector.add_graph(gd)
-            #puts "GD: #{gd.inspect}"
             gd.start
             gd = nil
           else
@@ -73,29 +68,6 @@ module LabWiki::Plugin::Experiment
         @log_table << row
       end
     end
-
-    def handle_exp_output(ec, etype, msg)
-      begin
-        debug "output:#{etype}: #{msg.inspect}"
-
-        case etype
-        when 'STARTED'
-          info "Experiment #{@name} started. PID: #{ec.pid}"
-          @state = :running
-          self.persist [:status, :pid]
-        when 'LOG'
-          process_exp_log_msg(msg)
-        when 'DONE.OK'
-          @state = :finished
-          self.persist [:status]
-          @oml_connector.disconnect
-        end
-      rescue Exception => ex
-        warn "EXCEPTION: #{ex}"
-        debug ex.backtrace.join("\n")
-      end
-    end
-
   end # class
 end # module
 
