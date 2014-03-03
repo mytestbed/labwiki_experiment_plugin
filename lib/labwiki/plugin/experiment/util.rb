@@ -53,5 +53,14 @@ module LabWiki::Plugin::Experiment
         end.resume
       end
     end
+
+    # Try to disconnect all current DB connections
+    def self.disconnect_all_db_connections
+      OMF::Web::SessionStore.session.each do |k, v|
+        if k =~ /^widgets:.+/ && !v.experiment.nil?
+          v.experiment.disconnect_db_connections
+        end
+      end
+    end
   end
 end # module

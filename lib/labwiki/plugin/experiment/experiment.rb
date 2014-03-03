@@ -201,17 +201,24 @@ module LabWiki::Plugin::Experiment
     end
 
     def _stop_job
-      debug "SEND job stop request to #{@job_url}>>>"
-      EM.synchrony do
-        begin
-          response = EM::HttpRequest.new(@job_url).post(body: JSON.pretty_generate({status: 'aborted'}),
-                                                        head: { 'Content-Type' => 'application/json' })
-          @oml_connector.disconnect
-        rescue => ex
-          warn "Exception while stopping a job - #{ex}"
-          debug "While stopping a job - \n\t#{ex.backtrace.join("\n\t")}"
+      if @job_url
+        debug "SEND job stop request to #{@job_url}>>>"
+        EM.synchrony do
+          begin
+            response = EM::HttpRequest.new(@job_url).post(body: JSON.pretty_generate({status: 'aborted'}),
+                                                          head: { 'Content-Type' => 'application/json' })
+          rescue => ex
+            warn "Exception while stopping a job - #{ex}"
+            debug "While stopping a job - \n\t#{ex.backtrace.join("\n\t")}"
+          end
         end
+      else
+        warn "Job URL is missing for experiment #{@name}"
       end
+    end
+
+    def disconnect_db_connections
+      @oml_connector.disconnect
     end
 
     def _query_job_status(url)
@@ -224,6 +231,7 @@ module LabWiki::Plugin::Experiment
             reply = JSON.parse(resp.response)
             self.state = reply["status"]
             @uuid = reply["uuid"]
+            @job_url = reply["href"]
             send_status(:ex_prop, {uuid: @uuid})
             @oml_connector.connect(reply["oml_db"])
           end

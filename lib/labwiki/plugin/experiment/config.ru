@@ -1,3 +1,10 @@
+map "/disconnect_all_db_connections" do
+  handler = lambda do |env|
+    LabWiki::Plugin::Experiment::Util.disconnect_all_db_connections
+    [200, {}, ""]
+  end
+  run handler
+end
 
 map "/dump" do
   handler = lambda do |env|
@@ -8,10 +15,6 @@ map "/dump" do
     else
       return [500, {}, "Dump script not configured."]
     end
-
-
-    # TODO Getting exp from job_service
-    #exp = { irods_path: 'irods_suck/really_suck' }
 
     job_service_cfg = LabWiki::Configurator[:plugins][:experiment][:job_service] rescue nil
     job_service_url = "#{job_service_cfg[:host]}:#{job_service_cfg[:port]}" rescue nil

@@ -60,8 +60,8 @@ module LabWiki::Plugin::Experiment
         end
         @periodic_timers.clear
       end
-      @log_adapter.disconnect
-      @ec_adapter.disconnect
+      #@log_adapter.disconnect
+      #@ec_adapter.disconnect
     end
 
     def connected?
@@ -97,7 +97,7 @@ module LabWiki::Plugin::Experiment
     end
 
     def _on_connected(connection)
-      debug "Connected to OML backend '#{@oml_url}'"
+      debug "Connected to OML backend '#{@connection.url}'"
 
       @log_adapter.on_connected(connection)
       @ec_adapter.on_connected(connection)

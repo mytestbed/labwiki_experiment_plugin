@@ -7,7 +7,7 @@ module LabWiki::Plugin::Experiment
   #
   class ExperimentWidget < LabWiki::ColumnWidget
 
-    attr_reader :name
+    attr_reader :name, :experiment
 
     def initialize(column, config_opts, unused)
       unless column == :execute
@@ -17,6 +17,9 @@ module LabWiki::Plugin::Experiment
       @experiment = nil
 
       @config_opts = config_opts
+
+      LabWiki::Plugin::Experiment::Util.disconnect_all_db_connections
+
       OMF::Web::SessionStore[self.widget_id, :widgets] = self # Let's stick around a bit
     end
 
