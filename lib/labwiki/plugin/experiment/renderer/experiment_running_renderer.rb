@@ -34,7 +34,7 @@ module LabWiki::Plugin::Experiment
     def render_properties
       properties = @experiment.exp_properties
       #puts ">>>> #{properties}"
-      render_header "Experiment Properties"
+      render_header "Experiment Properties", 'first'
       div :class => 'experiment-status' do
         table :class => 'experiment-status table table-bordered', :style => 'width: auto'  do
           render_field_static :name => 'Name', :value => @experiment.name
@@ -77,8 +77,8 @@ module LabWiki::Plugin::Experiment
       end
     end
 
-    def render_header(header_text)
-      h3 do
+    def render_header(header_text, header_class = nil)
+      h3 :class => (header_class || "") do
         a :class => 'toggle', :href => '#'
         text header_text
       end
