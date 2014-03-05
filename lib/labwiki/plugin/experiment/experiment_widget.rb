@@ -26,11 +26,7 @@ module LabWiki::Plugin::Experiment
     def on_get_content(params, req)
       debug "on_get_content: '#{params.inspect}'"
       @experiment = LabWiki::Plugin::Experiment::Experiment.new(params, @config_opts)
-      # if (omf_exp_id = params[:omf_exp_id])
-        # @experiment = LabWiki::Plugin::Experiment::Experiment.new(params, @config_opts)
-      # else
-        # @experiment = LabWiki::Plugin::Experiment::Experiment.new(params, @config_opts)
-      # end
+      nil
     end
 
     def on_start_experiment(params, req)
@@ -38,11 +34,13 @@ module LabWiki::Plugin::Experiment
       gimi_info = { irods_path: params[:irods_path] }
       slice = params[:slice]
       @experiment.start_experiment((params[:properties] || {}).values, slice, params[:name], gimi_info)
+      nil
     end
 
     def on_stop_experiment(params, req)
       debug "STOP EXPERIMENT as requested>>> #{params.inspect}"
       @experiment.stop_experiment
+      nil
     end
 
     def new?
