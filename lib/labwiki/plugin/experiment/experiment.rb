@@ -241,9 +241,6 @@ module LabWiki::Plugin::Experiment
       end
     end
 
-    def to_json
-    end
-
     def user
       OMF::Web::SessionStore[:id, :user] || 'unknown'
     end
