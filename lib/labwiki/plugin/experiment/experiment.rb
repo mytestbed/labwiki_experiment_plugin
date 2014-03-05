@@ -218,7 +218,7 @@ module LabWiki::Plugin::Experiment
     end
 
     def disconnect_db_connections
-      @oml_connector.disconnect
+      @oml_connector.disconnect if @oml_connector
     end
 
     def _query_job_status(url)
