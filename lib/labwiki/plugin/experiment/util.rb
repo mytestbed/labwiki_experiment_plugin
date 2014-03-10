@@ -59,6 +59,7 @@ module LabWiki::Plugin::Experiment
       OMF::Web::SessionStore.session.each do |k, v|
         if k =~ /^widgets:.+/ && !v.experiment.nil?
           v.experiment.disconnect_db_connections
+          OMF::Web::SessionStore.session.delete(k)
         end
       end
     end
