@@ -21,7 +21,7 @@ module LabWiki::Plugin::Experiment
   class Experiment < OMF::Base::LObject
     DEF_MONITOR_INTERVAL = 5 # How frequently to check on Job Service
 
-    attr_reader :name, :uuid, :state, :url, :slice, :decl_properties, :exp_properties, :session_context
+    attr_reader :name, :uuid, :state, :url, :slice, :decl_properties, :exp_properties, :session_context, :job_url
 
     def initialize(params, config_opts)
       debug "PARAMS: #{params}, CONFIG: #{config_opts}"
