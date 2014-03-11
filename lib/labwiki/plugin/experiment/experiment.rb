@@ -81,6 +81,7 @@ module LabWiki::Plugin::Experiment
     def _schedule_job(name, properties, slice, gimi_info)
       job = {
         name: name,
+        username: OMF::Web::SessionStore[:id, :user]
       }
       job[:slice] = slice if slice
       job[:irods_path] = gimi_info[:irods_path]
