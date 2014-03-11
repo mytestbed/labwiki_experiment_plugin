@@ -43,6 +43,11 @@ module LabWiki::Plugin::Experiment
       nil
     end
 
+    def on_dump(params, req)
+      debug "DUMP State as requested for Experiment #{@experiment.name}"
+      @experiment.dump
+    end
+
     def new?
       @experiment ? (@experiment.state == :new) : false
     end

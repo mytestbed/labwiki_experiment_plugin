@@ -150,18 +150,16 @@ module LabWiki::Plugin::Experiment
       _stop_job
     end
 
-    def _init_oml
+    def dump
+      _dump
+    end
 
+    def _init_oml
       #status_schema = [[:time, :int], :phase, [:completion, :float], :message]
       status_schema = [:type, :message]
       @status_table = OmlConnector.create_oml_table('status', status_schema, self)
-
-
       @oml_connector = OmlConnector.new(self)
-      # @log_adapter = LogAdapter.new(self)
-      # @log_table = @log_adapter.log_table
     end
-
 
     def _post_job(job)
       body = JSON.pretty_generate(job)
@@ -186,11 +184,11 @@ module LabWiki::Plugin::Experiment
             reply = JSON.parse(body)
             debug "Job service reply: #{reply.inspect}"
             @uuid = reply["uuid"]
-            send_status(:ex_prop, {uuid: @uuid})
+            send_status(:ex_prop, { uuid: @uuid })
             self.state = reply["status"]
             @job_url = reply["href"]
-            oml_url = reply["oml_db"]
-            @oml_connector.connect(oml_url)
+            @oml_url = reply["oml_db"]
+            @oml_connector.connect(@oml_url)
             #_monitor_job(@uuid)
           end
         rescue => ex
@@ -217,6 +215,31 @@ module LabWiki::Plugin::Experiment
       end
     end
 
+    def _dump
+      if LabWiki::Configurator[:gimi] && LabWiki::Configurator[:gimi][:dump_script]
+        dump_cmd = File.expand_path(LabWiki::Configurator[:gimi][:dump_script])
+      else
+        return { error: "Dump script not configured." }
+      end
+
+      job_service_cfg = LabWiki::Configurator[:plugins][:experiment][:job_service] rescue nil
+      job_service_url = "#{job_service_cfg[:host]}:#{job_service_cfg[:port]}" rescue nil
+      return { error: "Job service not configured." } if job_service_url.nil?
+
+      irods_path = HTTParty.get("http://#{job_service_url}/jobs/#{@name}")["irods_path"]
+      return { error: "Cannot find iRODS path for experiment(task): #{@name}" } if irods_path.nil?
+
+      irods_web_url = "https://www.irods.org/web/browse.php#ruri=#{OMF::Web::SessionStore[:id, :irods_user]}.geniRenci@geni-gimi.renci.org:1247/geniRenci/home/gimiadmin/#{irods_path}"
+
+      i_path = "#{irods_path}/#{LabWiki::Configurator[:gimi][:irods][:measurement_folder]}" rescue irods_path
+
+      dump_cmd << " --domain #{@name} --path #{i_path}"
+
+      EM.popen(dump_cmd)
+
+      { success: "Dump script triggered and it will take a while. <br /> You could access the file via <a href='#{irods_web_url}' target='_blank'>iRODS web client</a>." }
+    end
+
     def disconnect_db_connections
       @oml_connector.disconnect if @oml_connector
     end
@@ -232,8 +255,9 @@ module LabWiki::Plugin::Experiment
             self.state = reply["status"]
             @uuid = reply["uuid"]
             @job_url = reply["href"]
-            send_status(:ex_prop, {uuid: @uuid})
-            @oml_connector.connect(reply["oml_db"])
+            @oml_url = reply["oml_db"]
+            send_status(:ex_prop, { uuid: @uuid })
+            @oml_connector.connect(@oml_url) if %w(finished running aborted).include?(self.state)
           end
         rescue => ex
           warn "Exception while searching job service - #{ex}"
