@@ -20,8 +20,9 @@ module LabWiki::Plugin::Experiment
 
     attr_reader :name, :type, :mstreams
 
-    def initialize(experiment, connection)
+    def initialize(graph_name, experiment, connection)
       super()
+      @graph_name = graph_name
       @experiment = experiment
       @connection = connection
       @tables = {}
@@ -38,8 +39,8 @@ module LabWiki::Plugin::Experiment
 
       debug "parse: #{type}--#{descr}"
       case type[0]
-      when 'START'
-        @name = descr
+      # when 'START'
+        # @graph_name = descr
       when 'TYPE'
         @opts[:type] = descr
       when 'POSTFIX'
@@ -52,8 +53,8 @@ module LabWiki::Plugin::Experiment
         @opts[:mapping] = JSON.parse(descr)
       when 'AXIS'
         @opts[:axis] = JSON.parse(descr)
-      when 'STOP'
-        # ignore
+      # when 'STOP'
+        # # ignore
       else
         warn("Unknown graph description type '#{type.inspect}'")
       end
@@ -101,6 +102,10 @@ module LabWiki::Plugin::Experiment
       dss = @tables.map do |tname, descr|
         _feed_table descr
         opts = descr[:data_source].to_hash(name: tname)
+        name = "#{@graph_name.downcase}:#{opts[:name]}"
+        opts[:url] = @experiment.job_url + '/measurement_points/' + name
+        opts[:data] = opts[:url] + '/data'
+        opts
       end
       @opts[:data_sources] = dss
       @experiment.send_status(:graph, @opts)

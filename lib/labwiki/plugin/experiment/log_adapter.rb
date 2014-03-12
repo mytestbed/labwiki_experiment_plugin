@@ -55,7 +55,7 @@ module LabWiki::Plugin::Experiment
           case m[1]
           when /START:/
             error "Unfinished graph description detected - #{gd}" if gd
-            gd = LabWiki::Plugin::Experiment::GraphAdapter.new(@experiment, @connection)
+            gd = LabWiki::Plugin::Experiment::GraphAdapter.new(m[2], @experiment, @connection)
           when /STOP/
             gd.start
             gd = nil
