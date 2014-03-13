@@ -23,11 +23,7 @@ module LabWiki::Plugin::Experiment
 
     def render_toolbar
       div :class => 'widget-toolbar' do
-        #button "Stop experiment", :id => 'btn-stop-experiment', :class => 'btn-stop-experiment btn btn-danger', :style => 'display: none;'
-        #if LabWiki::Configurator[:gimi] && LabWiki::Configurator[:gimi][:dump_script]
-        #  button "Dump", :id => 'btn-dump', :exp_id => @experiment.name, :class => 'btn-dump btn btn-default',  :style => 'display: none;'
-        #end
-        div :class => 'alert-dump', :style => "display: none; margin: 7px 0 7px 7px; padding: 5px;"
+        div :class => 'alert-toolbar', :style => "display: none; margin: 7px 0 7px 7px; padding: 5px;"
       end
     end
 

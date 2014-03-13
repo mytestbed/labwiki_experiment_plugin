@@ -202,18 +202,23 @@ module LabWiki::Plugin::Experiment
     def _stop_job
       if @job_url
         debug "SEND job stop request to #{@job_url}>>>"
-        EM.synchrony do
+        reply = {}
+        EM.defer do
           begin
-            response = EM::HttpRequest.new(@job_url).post(body: JSON.pretty_generate({status: 'aborted'}),
-                                                          head: { 'Content-Type' => 'application/json' })
+            self.state = HTTParty.post(@job_url, body: { status: 'aborted' })["status"]
+            puts self.state
+            disconnect_db_connections
           rescue => ex
             warn "Exception while stopping a job - #{ex}"
             debug "While stopping a job - \n\t#{ex.backtrace.join("\n\t")}"
+            reply = { error: "Exception while stopping a job - #{ex}" }
           end
         end
+        reply =  { success: "Abort request sent to the job service" }
       else
-        warn "Job URL is missing for experiment #{@name}"
+        reply =  { error: "Job URL is missing for experiment #{@name}" }
       end
+      return reply
     end
 
     def _dump
