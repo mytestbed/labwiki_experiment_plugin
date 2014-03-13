@@ -40,7 +40,6 @@ module LabWiki::Plugin::Experiment
     def on_stop_experiment(params, req)
       debug "STOP EXPERIMENT as requested>>> #{params.inspect}"
       @experiment.stop_experiment
-      nil
     end
 
     def on_dump(params, req)

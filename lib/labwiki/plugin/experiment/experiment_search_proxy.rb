@@ -32,7 +32,7 @@ module LabWiki::Plugin::Experiment
       end
 
       unless result
-        query(pattern)
+        query(pattern, OMF::Web::SessionStore[:id, :user])
         raise LabWiki::RetrySearchLaterException.new
       end
       experiments = result[:jobs].map do |r|
@@ -42,10 +42,10 @@ module LabWiki::Plugin::Experiment
       experiments.concat(files)
     end
 
-    def query(pat)
+    def query(pat, username)
       EventMachine.synchrony do
         begin
-          resp = EventMachine::HttpRequest.new(@url).get(query: {pat: pat})
+          resp = EventMachine::HttpRequest.new(@url).get(query: {pat: pat, username: username})
           unless (rcode = resp.response_header.status) == 200
             warn "Job search failed (#{rcode})- #{resp.response}"
           else
