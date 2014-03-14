@@ -48,6 +48,7 @@ module LabWiki::Plugin::Experiment
               debug "Table '#{m[1]}' doesn't exist yet"
             else
               warn "Retry '#{@block}' failed - #{ex.class}<#{ex.to_s.gsub("\n", ' | ')[0 ... 50]}>"
+              debug "Retry '#{@block}' failed - \n\t#{ex.backtrace[0 ... 10].join("\n\t")}"
             end
           end
         end.resume

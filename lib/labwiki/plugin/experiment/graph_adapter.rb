@@ -104,7 +104,7 @@ module LabWiki::Plugin::Experiment
         opts = descr[:data_source].to_hash(name: tname)
         name = "#{@graph_name.downcase}:#{opts[:name]}"
         opts[:context] = @experiment.job_url + '/measurement_points/' + name
-        opts[:data_url] = opts[:url] + '/data'
+        opts[:data_url] = opts[:context] + '/data'
         opts
       end
       @opts[:data_sources] = dss
