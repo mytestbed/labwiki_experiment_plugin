@@ -2,7 +2,9 @@ require 'labwiki/plugin/experiment/graph_adapter'
 
 module LabWiki::Plugin::Experiment
 
-  # Monitors and processes the LOG table
+  # Monitors and processes the EC Metadata table which reports
+  # primarily on changes to experiment properties.
+  #
   #
   class EcAdapter < OMF::Base::LObject
     DEF_QUERY_INTERVAL = 3 # secs
