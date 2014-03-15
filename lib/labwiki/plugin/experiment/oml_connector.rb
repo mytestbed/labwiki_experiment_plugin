@@ -19,7 +19,7 @@ module LabWiki::Plugin::Experiment
 
     def self.create_oml_table(tname, schema, experiment, clear_if_exists = true)
       name = experiment.name
-      id = "exp_#{tname}_#{name}"
+      id = "exp_#{tname}_#{name}_#{OMF::Web::SessionStore.session_id}"
       if dsp = OMF::Web::DataSourceProxy.find(id, false)
         puts ">>> ALRADY EXISTS>>> #{id}"
         table = dsp.data_source
