@@ -19,11 +19,11 @@ module LabWiki::Plugin::Experiment
       div :class => "experiment-description", :id => @data_id do
         render_content
       end
-      javascript %{
-        require(['plugin/experiment/js/experiment_controller'], function(experiment_controller) {
-          $("\##{@data_id}").data('ec', experiment_controller(#{@content_descriptor.to_json}));
-        })
-      }
+      # javascript %{
+        # require(['plugin/experiment/js/experiment_controller'], function(experiment_controller) {
+          # $("\##{@data_id}").data('ec', experiment_controller(#{@content_descriptor.to_json}));
+        # })
+      # }
     end
 
     def title_info

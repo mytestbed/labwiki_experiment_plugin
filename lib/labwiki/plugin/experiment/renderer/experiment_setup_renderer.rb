@@ -39,7 +39,7 @@ module LabWiki::Plugin::Experiment
             tr :class => "buttons" do
               td :colspan => 3 do
                 input :type => "hidden", :name => "name1",  :id => "id1", :value => "value1"
-                button "Start Experiment", :class => 'btn btn-primary', :type => "submit", :id => "id_startExperiment"
+                button "Start Experiment", :class => 'btn btn-primary btn-start-experiment', :type => "submit", :id => "#{fid}_startExperiment"
                 # input :id => "id_startExperiment", :name => "name_startExperient", :class => "submit button-text btn",
                   # :type => "submit", :value => "Start Experiment"
                   #:onmousedown => "doSubmitEvents();"
@@ -54,13 +54,15 @@ module LabWiki::Plugin::Experiment
 
     def render_javascript(fid)
       opts = {
-        :properties => @experiment.decl_properties,
-        :widget_id => @widget.widget_id,
-        :url => "lw:execute/experiment?url=#{@experiment.url}",
-        :script => @experiment.url
+        properties: @experiment.decl_properties,
+        widget_id: @widget.widget_id,
+        url: "lw:execute/experiment?url=#{@experiment.url}",
+        script: @experiment.url,
+        session_id: OMF::Web::SessionStore.session_id
       }
 
       if LabWiki::Configurator[:gimi] && LabWiki::Configurator[:gimi][:ges]
+        opts[:geni_projects] = OMF::Web::SessionStore[:projects, :geni_portal]
         javascript %{
           var geni_projects = #{OMF::Web::SessionStore[:projects, :geni_portal].to_json};
 
@@ -74,15 +76,22 @@ module LabWiki::Plugin::Experiment
       end
 
       javascript %{
-        $("\##{fid}").submit(function(event) {
-          event.preventDefault();
-
-          var form_el = $(this);
-          var fopts = #{opts.to_json};
-          var ec = $("\##{@data_id}").data('ec');
-          ec.submit(form_el, fopts);
+        require(['plugin/experiment/js/experiment_setup'], function(ExperimentSetup) {
+          ExperimentSetup('#{fid}', #{opts.to_json});
         });
       }
+
+
+      # javascript %{
+        # $("\##{fid}").submit(function(event) {
+          # event.preventDefault();
+#
+          # var form_el = $(this);
+          # var fopts = #{opts.to_json};
+          # var ec = $("\##{@data_id}").data('ec');
+          # ec.submit(form_el, fopts);
+        # });
+      # }
     end
 
     def render_properties
