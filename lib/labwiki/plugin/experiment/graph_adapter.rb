@@ -82,9 +82,9 @@ module LabWiki::Plugin::Experiment
       table = nil
       @experiment.session_context.call do
         table = OmlConnector.create_oml_table("#{name}_#{object_id}", schema, @experiment)
+        _report_table name, table
       end
       #puts "TABLE>>> #{table}"
-      _report_table name, table
     end
 
     def _report_table(name, table)
