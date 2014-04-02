@@ -1,0 +1,16 @@
+
+WidgetConfig = {
+  url: '%HOST%',
+  path: '/_column',
+  type: 'GET',
+  opts: {
+    col: 'execute',
+    action: 'get_content',
+    url: '%URL%',
+    mime_type: 'text/ruby',
+    iwidget: {
+      width: %WIDTH%,
+      height: %HEIGHT%
+    }
+  }
+};
