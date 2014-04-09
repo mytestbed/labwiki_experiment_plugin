@@ -31,14 +31,15 @@ module LabWiki::Plugin::Experiment
     end
 
     attr_reader :log_adapter, :ec_adapter
+    attr_accessor :graph_adapters
 
     def initialize(experiment)
       super()
       @log_adapter = LogAdapter.new(experiment)
       @ec_adapter = EcAdapter.new(experiment)
       @experiment = experiment
+      @graph_adapters = []
 
-      @graph_descriptions = []
       @connected = false
       @periodic_timers = {}
     end
@@ -62,6 +63,7 @@ module LabWiki::Plugin::Experiment
       end
       @log_adapter.disconnect
       @ec_adapter.disconnect
+      @graph_adapters.each(&:stop)
     end
 
     def connected?

@@ -250,6 +250,10 @@ module LabWiki::Plugin::Experiment
       @oml_connector.disconnect if @oml_connector
     end
 
+    def add_graph_adapter(graph_adapter)
+      @oml_connector.graph_adapters << graph_adapter
+    end
+
     def _query_job_status(url)
       EventMachine.synchrony do
         begin

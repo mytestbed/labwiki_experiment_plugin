@@ -30,7 +30,8 @@ module LabWiki::Plugin::Experiment
       @opts = {
         :margin => {:left => 80, :right => 50}
       }
-      @periodic_timers = {}
+      @query_timers = []
+      @experiment.add_graph_adapter(self)
     end
 
     def parse(type, descr)
@@ -64,6 +65,12 @@ module LabWiki::Plugin::Experiment
       @mstreams.each {|name, query| @tables[name] = {query: query}}
       @mstreams.each do |name, query|
         _discover_schema(name, query)
+      end
+    end
+
+    def stop
+      synchronize do
+        @query_timers.each(&:cancel)
       end
     end
 
@@ -142,7 +149,7 @@ module LabWiki::Plugin::Experiment
         false # keep on going
       end
       synchronize do
-        @periodic_timers[:query] = t_query
+        @query_timers << t_query
       end
     end
 
