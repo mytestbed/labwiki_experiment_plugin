@@ -38,6 +38,10 @@ module LabWiki::Plugin::Experiment
       end
     end
 
+    def disconnect
+      @t_q.cancel if @t_q
+    end
+
     # Returns a lambda to be called for every incoming record
     # Primary function is to filter out graph descriptions and pass on the
     # rest to the ec_table so it can be processed by the UI

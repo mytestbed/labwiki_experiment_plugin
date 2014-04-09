@@ -60,8 +60,8 @@ module LabWiki::Plugin::Experiment
         end
         @periodic_timers.clear
       end
-      #@log_adapter.disconnect
-      #@ec_adapter.disconnect
+      @log_adapter.disconnect
+      @ec_adapter.disconnect
     end
 
     def connected?
