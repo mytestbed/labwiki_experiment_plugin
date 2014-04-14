@@ -72,7 +72,8 @@ module LabWiki::Plugin::Experiment
         td name + ':', :class => "desc"
         td :class => "input", :colspan => (comment ? 1 : 2) do
           if url = prop[:url]
-            a prop[:value], href: url
+            opts = (url.start_with? 'lw:') ? {xhref: url} : {href: url}
+            a prop[:value], opts
           else
             v = prop[:value]
             opts = {
