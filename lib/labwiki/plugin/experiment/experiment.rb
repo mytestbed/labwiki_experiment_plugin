@@ -52,12 +52,12 @@ module LabWiki::Plugin::Experiment
         raise "Missing configuration 'job_service"
       end
 
+      @exp_properties = []
       @config_opts = config_opts
       @session_context = OMF::Web::SessionStore.session_context
     end
 
-    def start_experiment(properties, slice, name, gimi_info = {})
-      #puts "PROP - #{properties.inspect}"
+    def start_experiment(entered_properties, slice, name, gimi_info = {})
       unless @state == :new
         warn "Attempt to start an already running or finished experiment"
         return # TODO: Raise appropriate exception
@@ -73,12 +73,12 @@ module LabWiki::Plugin::Experiment
       info "Starting experiment name: '#{@name}' url: '#{@url}'"
 
       _init_oml()
-      _schedule_job(name, properties, slice, gimi_info)
+      _schedule_job(name, entered_properties, slice, gimi_info)
 
       @start_time = Time.now
     end
 
-    def _schedule_job(name, properties, slice, gimi_info)
+    def _schedule_job(name, entered_properties, slice, gimi_info)
       job = {
         name: name,
         username: OMF::Web::SessionStore[:id, :user]
@@ -96,29 +96,29 @@ module LabWiki::Plugin::Experiment
         content: bc.split("\n")
       }
 
-      job[:ec_properties] = @exp_properties = ec_props = []
-      props = {}
-      properties.each {|p| props[p[:name]] = p }
-      @decl_properties.each do |p|
-        ep = {name: (name = p[:name])}
-        prop = props[name]
-        value = (prop ? prop[:value] : nil) || p[:default]
-        #puts ">> VALUE: #{value} - pv: #{prop[:value]} def: #{p[:default].inspect}"
-        next unless value
+      job[:ec_properties] = @exp_properties
 
+      entered_properties = Hash[entered_properties.map do |k, v|
+        [k.to_s.sub(/^prop/, ''), v]
+      end]
+
+      @decl_properties.each do |p|
+        p_name = p[:name]
+        p_value = entered_properties[p_name] || p[:default]
+
+        # User didn't input value and no default defined either
+        next if p_value.nil?
+
+        # If property name starts with res, and user didn't change default input
+        # Probably means user doesn't care about the actual value.
+        # Then we simply won't pass it to job service
         # TODO: Define a more robust way for identifying resource properties
-        if name.start_with? 'res'
-        # if false # TODO: Right now ignore resources
-          rname = (value == p[:default] ? nil : value) # ignore default values
-          type = 'node'
-          res = ep[:resource] = {type: type}
-          res[:name] = rname if rname
-        else
-          ep[:value] = value
-        end
-        ec_props << ep
+        next if p_name =~ /^res/ && p_value == p[:default]
+
+        @exp_properties << { name: p_name, value: p_value }
       end
       _post_job(job)
+
       self.state = :pending
     end
 
@@ -126,14 +126,9 @@ module LabWiki::Plugin::Experiment
       ts = Time.now.iso8601.split('+')[0].gsub(':', '-')
       @name = "#{self.user}-"
       if (!name.nil? && name.to_s.strip.length > 0)
-
-        # TODO: FOR DEBUGGING ONLY
-        # @name = name
-        # return @name
-
         @name += "#{name.gsub(/\W+/, '_')}-"
       end
-      @name +=  ts
+      @name += ts
       @name.delete(' ')
       @name
     end
