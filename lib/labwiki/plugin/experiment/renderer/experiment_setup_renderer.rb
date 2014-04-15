@@ -30,8 +30,7 @@ module LabWiki::Plugin::Experiment
               end
             end
 
-            render_field_static :name => 'Script', :value => @experiment.url
-
+            render_field_static :name => 'Script', :value => @experiment.url, :url => "lw:prepare/source_edit?url=#{@experiment.url}"
             properties.each_with_index do |prop, i|
               render_field(-1, prop)
             end
