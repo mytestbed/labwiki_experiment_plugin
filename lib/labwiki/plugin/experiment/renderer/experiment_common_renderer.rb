@@ -32,7 +32,6 @@ module LabWiki::Plugin::Experiment
 
 
     def render_field(index, prop)
-      # {:default=>"node2", :comment=>"ID of a node", :name=>"res2", :size => 16}
       comment = prop[:comment]
       name = prop[:name].downcase
       type = prop[:type] || :text
@@ -45,7 +44,6 @@ module LabWiki::Plugin::Experiment
           when :text
             input :name => fname, :type => "text", :class => "field text fn",
               :value => prop[:default] || "", :size => prop[:size] || 16, :tabindex => (@tab_index += 1)
-              #:onkeyup => "handleInput(this);", :onchange => "handleInput(this);"
           when :hidden
             input :name => fname, :type => "hidden", :value => prop[:default] || "", :tabindex => (@tab_index += 1)
           when :select
@@ -65,7 +63,6 @@ module LabWiki::Plugin::Experiment
     end
 
     def render_field_static(prop, with_comment = true)
-      # {:default=>"node2", :comment=>"ID of a node", :name=>"res2", :size => 16}
       comment = prop[:comment]
       name = prop[:name].downcase
       tr do
@@ -90,7 +87,5 @@ module LabWiki::Plugin::Experiment
         end
       end
     end
-
-
   end # class
 end # module

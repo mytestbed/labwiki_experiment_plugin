@@ -31,9 +31,15 @@ module LabWiki::Plugin::Experiment
 
     def on_start_experiment(params, req)
       debug "START EXPERIMENT>>> #{params.inspect}"
-      gimi_info = { irods_path: params[:irods_path] }
-      slice = params[:slice]
-      @experiment.start_experiment((params[:properties] || {}).values, slice, params[:name], gimi_info)
+
+      parameters = params[:parameters] || {}
+
+      gimi_info = { irods_path: parameters.delete(:propexperiment_context) }
+      slice = parameters.delete(:propslice)
+      name = parameters.delete(:propname)
+
+      # Left in parameters are exp properties
+      @experiment.start_experiment(parameters, slice, name, gimi_info)
       nil
     end
 
