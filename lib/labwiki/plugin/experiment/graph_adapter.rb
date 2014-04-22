@@ -77,21 +77,47 @@ module LabWiki::Plugin::Experiment
     def _discover_schema(name, query)
       debug "Initializing mstream '#{name}' (#{query})"
 
-      row = @connection.fetch(query).first
-      debug "First row to discover schema for '#{name}': #{row.inspect} - #{row.class}"
-      schema = row.map do |k, v|
-        unless type = CLASS2TYPE[v.class]
-          warn "Unknown type mapping for class '#{v.class}'"
-          type = :string
+      t_discover = LabWiki::Plugin::Experiment::Util::retry(DEF_QUERY_INTERVAL) do
+        first_row = nil
+
+        if connected?
+          begin
+            first_row = @connection.fetch(query).limit(1, 0).first
+          rescue => e
+            if e.message =~ /ERROR:  relation "(.*)" does not exist/
+              debug "Table '#{$1}' doesn't exist yet"
+              t_discover.cancel if @experiment.completed?
+            else
+              raise e
+            end
+          end
+
+          if first_row
+            t_discover.cancel
+            debug "First row to discover schema for '#{name}': #{first_row.inspect} - #{first_row.class}"
+            schema = first_row.map do |k, v|
+              unless type = CLASS2TYPE[v.class]
+                warn "Unknown type mapping for class '#{v.class}'"
+                type = :string
+              end
+              [k.to_sym, type]
+            end
+            table = nil
+            @experiment.session_context.call do
+              table = OmlConnector.create_oml_table("#{name}_#{object_id}", schema, @experiment)
+              _report_table name, table
+            end
+          end
         end
-        [k.to_sym, type]
+
+        if first_row.nil? && @experiment.completed?
+          t_discover.cancel
+        end
       end
-      table = nil
-      @experiment.session_context.call do
-        table = OmlConnector.create_oml_table("#{name}_#{object_id}", schema, @experiment)
-        _report_table name, table
+
+      synchronize do
+        @query_timers << t_discover
       end
-      #puts "TABLE>>> #{table}"
     end
 
     def _report_table(name, table)
@@ -140,6 +166,8 @@ module LabWiki::Plugin::Experiment
               end.compact
               table.add_rows row_values
               offset += row_values.length
+            else
+              t_query.cancel if @experiment.completed?
             end
           rescue => e
             warn "Exception while running query '#{q}' - #{e}"

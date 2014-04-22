@@ -29,13 +29,15 @@ module LabWiki::Plugin::Experiment
       offset = 0
       handler = _log_processor
       @t_q = LabWiki::Plugin::Experiment::Util::retry(DEF_QUERY_INTERVAL) do
-        q.limit(DEF_QUERY_LIMIT, offset).each do |m|
+        rows = q.limit(DEF_QUERY_LIMIT, offset).all
+        disconnect if rows.empty? && @experiment.completed?
+        offset += rows.size
+        rows.each do |m|
           row = schema.hash_to_row(m)
           ts = Time.parse(row[0])
           start_time ||= ts
           row[0] = ts - start_time
           handler.call(row)
-          offset += 1
         end
         false # keep on going
       end
