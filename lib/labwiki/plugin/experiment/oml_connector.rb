@@ -84,6 +84,8 @@ module LabWiki::Plugin::Experiment
         rescue => e
           if e.message =~ /PG::Error: FATAL:  database .+ does not exist/
             debug "Database '#{db_uri}' doesn't exist yet"
+            # Experiment already finished, I won't look for DB any further
+            hdl.done if @experiment.completed?
             next
           else
             error "Connection to OML backend (DB) failed - #{e}"

@@ -134,8 +134,19 @@ module LabWiki::Plugin::Experiment
     end
 
     def state=(state)
+      return if @state.to_s =~ /aborted|failed|finished/ && state.to_s =~ /running/
       @state = state
       send_status(:state, state)
+    end
+
+    # State is either finished, aborted or failed
+    def completed?
+      @state.to_s =~ /finished|aborted|failed/
+    end
+
+    # State is running, aborted, or finished
+    def might_have_data?
+      @state.to_s =~ /finished|aborted|running/
     end
 
     def send_status(type, msg)
@@ -201,7 +212,6 @@ module LabWiki::Plugin::Experiment
         EM.defer do
           begin
             self.state = HTTParty.post(@job_url, body: { status: 'aborted' })["status"]
-            puts self.state
             disconnect_db_connections
           rescue => ex
             warn "Exception while stopping a job - #{ex}"
@@ -262,7 +272,7 @@ module LabWiki::Plugin::Experiment
             @job_url = reply["href"]
             @oml_url = reply["oml_db"]
             send_status(:ex_prop, { uuid: @uuid })
-            @oml_connector.connect(@oml_url) if %w(finished running aborted).include?(self.state)
+            @oml_connector.connect(@oml_url) if might_have_data?
           end
         rescue => ex
           warn "Exception while searching job service - #{ex}"
