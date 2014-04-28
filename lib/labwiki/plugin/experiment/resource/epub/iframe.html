@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops"$if(lang)$ xml:lang="$lang$"$endif$>
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+    <script type="text/javascript" src="/resource/vendor/require/require.js"></script>
+    <script type="text/javascript" src="/resource/vendor/underscore/underscore.js"></script>
+    <script type="text/javascript" src="/resource/vendor/backbone/backbone.js"></script>
+    <script type="text/javascript">
+      require.config({
+        baseUrl: '/resource',
+        paths: {
+          plugin: 'plugin',
+          omf: 'js',
+          vendor: 'vendor',
+          graph: 'graph/js',
+          graph_css: 'graph/css'
+        },
+        shim: {
+        },
+        map: {
+          '*': {
+            'css': 'vendor/require-css/css'
+          }
+        },
+        waitSeconds: 30
+      });
+
+      // GLOBALS
+      var OHUB = {};
+      _.extend(OHUB, Backbone.Events);
+
+WidgetConfig = {
+  url: 'http://192.168.1.105:4000',
+  path: '/_column',
+  type: 'GET',
+  opts: {
+    col: 'execute',
+    action: 'get_content',
+    url: 'git:default:repo/oidl/simple_oml_test.rb',
+    mime_type: 'text/ruby',
+    iwidget: {
+      width: 300,
+      height: 500
+    }
+  }
+};
+
+      require(['plugin/experiment/js/ibook_widget'], function(Embedder) {
+        Embedder(WidgetConfig);
+      });
+    </script>
+
+</head>
+<body>
+</body>
+</html>

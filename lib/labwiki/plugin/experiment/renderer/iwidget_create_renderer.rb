@@ -9,6 +9,21 @@ module LabWiki::Plugin::Experiment
       super widget, nil
     end
 
+    def content
+      link :href => '/resource/plugin/experiment/css/experiment.css', :rel => "stylesheet", :type => "text/css"
+      link :href => '/resource/plugin/experiment/css/ibook_widget.css', :rel => "stylesheet", :type => "text/css"
+
+      div :class => 'experiment-iwdget-container', :id => @data_id do
+        div class: 'content experiment-description' do
+          render_content
+        end
+        div class: 'busy' do
+          text 'BUSY'
+        end
+      end
+    end
+
+
     def render_content
       render_start_form
     end
