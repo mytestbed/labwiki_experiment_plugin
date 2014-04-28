@@ -19,6 +19,9 @@ LabWiki::PluginManager.register :experiment, {
     #OMF::Web::SessionStore[:execute, :repos] << repo
     #puts ">>>> EXPERIMENT NEW SESSION"
   end,
+  :on_session_close => lambda do
+    LabWiki::Plugin::Experiment::Util.disconnect_all_db_connections
+  end,
   :widgets => [
     {
       :name => 'experiment',
