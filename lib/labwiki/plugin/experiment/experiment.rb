@@ -31,7 +31,7 @@ module LabWiki::Plugin::Experiment
         @state = :new
         @url = params[:url]
         if (@url)
-          @oedl_script = OMF::Web::ContentRepository.read_content(@url, {})
+          @oedl_script = OMF::Web::ContentRepository.read_content(@url, params)
           begin
             @decl_properties = parse_oedl_script(@oedl_script)
           rescue => ex

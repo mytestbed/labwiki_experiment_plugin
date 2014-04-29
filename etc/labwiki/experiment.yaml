@@ -8,10 +8,17 @@ labwiki:
       mock:
 
     repositories:
-      system:
+      - name: system
         type: file
         read_only: true
         top_dir: ../../system_repo
+
+    default_plugins: # Create these plugins the first time a user logs in
+      - column: plan
+        plugin: 'wiki'
+        action: "on_get_content"
+        url: 'system:wiki/quickstart/quickstart.md'
+
 
   plugins:
     # topology:

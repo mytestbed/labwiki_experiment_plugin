@@ -60,7 +60,7 @@ module LabWiki::Plugin::Experiment
     end
 
     def render_logging
-      render_header  "Logging"
+      render_section_header  "Logging"
       div :class => 'experiment-log' do
         table :class => 'experiment-log table table-bordered'
         #div :class => 'experiment-log-latest'
@@ -73,7 +73,7 @@ module LabWiki::Plugin::Experiment
       end
     end
 
-    def render_header(header_text, header_class = nil)
+    def render_section_header(header_text, header_class = nil)
       h3 :class => (header_class || "") do
         a :class => 'toggle', :href => '#'
         text header_text

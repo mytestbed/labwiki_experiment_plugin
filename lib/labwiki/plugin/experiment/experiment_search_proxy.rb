@@ -4,7 +4,7 @@ require "em-synchrony"
 require "em-synchrony/em-http"
 
 module LabWiki::Plugin::Experiment
-  class ExperimentSearchProxy
+  class ExperimentSearchProxy <  OMF::Base::LObject
     def self.instance
       unless proxy = OMF::Web::SessionStore[self.to_s, :proxy]
         proxy = OMF::Web::SessionStore[self.to_s, :proxy] = self.new
@@ -21,7 +21,15 @@ module LabWiki::Plugin::Experiment
       opts[:mime_type] = 'text/ruby'
       files = OMF::Web::ContentRepository.find_files(pattern, opts)
 
-      puts "FIND: '#{pattern}' - opts: #{opts}"
+      if @error_at
+        if (Time.now - @error_at) > 60 # try again
+          @error_at = nil
+        else
+          return files
+        end
+      end
+
+      #puts "FIND: '#{pattern}' - opts: #{opts}"
 
       if result = @results[pattern]
         if (Time.now - result[:time]) > 30
@@ -46,8 +54,11 @@ module LabWiki::Plugin::Experiment
       EventMachine.synchrony do
         begin
           resp = EventMachine::HttpRequest.new(@url).get(query: {pat: pat, username: username})
-          unless (rcode = resp.response_header.status) == 200
-            warn "Job search failed (#{rcode})- #{resp.response}"
+          if resp.error
+            @error_at = Time.now
+          # end
+          # unless (rcode = resp.response_header.status) == 200
+            warn "Job search failed #{resp.response} - #{resp.inspect}"
           else
             reply = JSON.parse(resp.response)
             @results[pat] = {time: Time.now, jobs: reply}
@@ -64,6 +75,7 @@ module LabWiki::Plugin::Experiment
 
     def initialize
       @results = {}
+      @error_at = nil
     end
   end
 end
