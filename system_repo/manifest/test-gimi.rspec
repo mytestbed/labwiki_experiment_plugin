@@ -1,0 +1,211 @@
+<?xml version="1.0" ?>
+  <!-- Reserved resources for:
+	Slice: jo0705GIMI
+	at AM:
+	URN: unspecified_AM_URN
+	URL: https://geni.renci.org:11443/orca/xmlrpc
+ -->
+  <rspec type="manifest" xmlns="http://www.geni.net/resources/rspec/3" xmlns:ns2="http://hpn.east.isi.edu/rspec/ext/stitch/0.1/" xmlns:ns3="http://groups.geni.net/exogeni/attachment/wiki/RspecExtensions/slice-info/1" xmlns:ns4="http://groups.geni.net/exogeni/attachment/wiki/RspecExtensions/sliver-info/1" xmlns:ns5="http://www.geni.net/resources/rspec/ext/postBootScript/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.geni.net/resources/rspec/3 http://www.geni.net/resources/rspec/3/manifest.xsd http://hpn.east.isi.edu/rspec/ext/stitch/0.1/ http://hpn.east.isi.edu/rspec/ext/stitch/0.1/stitch-schema.xsd http://groups.geni.net/exogeni/attachment/wiki/RspecExtensions/slice-info/1 http://groups.geni.net/exogeni/attachment/wiki/RspecExtensions/slice-info/1/slice_info.xsd?format=raw http://groups.geni.net/exogeni/attachment/wiki/RspecExtensions/sliver-info/1 http://groups.geni.net/exogeni/attachment/wiki/RspecExtensions/sliver-info/1/sliver_info.xsd?format=raw http://www.geni.net/resources/rspec/ext/postBootScript/1 http://www.geni.net/resources/rspec/ext/postBootScript/1/request.xsd">  
+      <node client_id="nodeA" component_id="urn:publicid:IDN+exogeni.net:dukevmsite+node+orca-vm-cloud" component_manager_id="urn:publicid:IDN+exogeni.net:dukevmsite+authority+am" component_name="orca-vm-cloud" exclusive="false" sliver_id="urn:publicid:IDN+exogeni.net:dukevmsite+sliver+51f158cb-e22e-40b0-9b04-4c5b720d1dad:nodeA">    
+            <location country="Unspecified" latitude="36.00016" longitude="-78.944145"/>    
+            <sliver_type name="m1.small">      
+                  <disk_image name="http://emmy9.casa.umass.edu/Disk_Images/ExoGENI/exogeni-umass-ovs-1.0.3.xml" version="de35e71b31771870bcdfcccb4dee11657ba145b8"/>      
+            </sliver_type>    
+            <services>      
+                  <login authentication="ssh-keys" hostname="152.3.144.128" port="22" username="root"/>      
+                  <ns5:services_post_boot_script type="velocity">#!/bin/bash
+# Automatically generated boot script
+
+# wget or curl must be installed on the image
+cd /tmp
+if [ -x `which wget 2&amp;gt;/dev/null` ]; then
+  wget -q http://emmy9.casa.umass.edu/InstaGENI_Images/install-script-exo.tar.gz
+else if [ -x `which curl 2&amp;gt;/dev/null` ]; then
+  curl http://emmy9.casa.umass.edu/InstaGENI_Images/install-script-exo.tar.gz &amp;gt; `basename http://emmy9.casa.umass.edu/InstaGENI_Images/install-script-exo.tar.gz`
+fi
+fi
+# untar
+tar -zxf `basename http://emmy9.casa.umass.edu/InstaGENI_Images/install-script-exo.tar.gz`
+execString=&amp;quot;/bin/bash -c \&amp;quot;/tmp/postboot_script_exo.sh urn:publicid:IDN+ch.geni.net:GIMITesting+slice+jo0705GIMI nodeA\&amp;quot;&amp;quot;
+eval $execString
+
+</ns5:services_post_boot_script>      
+            </services>    
+            <interface client_id="nodeA:if0" mac_address="fe:16:3e:00:3a:26">      
+                  <ip address="192.168.5.11" netmask="255.255.255.0" type="ipv4"/>      
+            </interface>    
+            <interface client_id="nodeA:if1" mac_address="fe:16:3e:00:42:ff">      
+                  <ip address="192.168.4.11" netmask="255.255.255.0" type="ipv4"/>      
+            </interface>    
+            <ns4:geni_sliver_info creation_time="2013-07-05T21:30:19.000Z" creator_urn="johren@bbn.com, urn:publicid:IDN+ch.geni.net+user+johren" expiration_time="2013-07-12T21:25:32.000Z" resource_id="dbc1-06.nicl.cs.duke.edu:6ed3b951-9582-445a-992b-f1b62d7a1130" start_time="2013-07-05T21:30:19.000Z" state="ready"/>    
+      </node>  
+      <node client_id="nodeD" component_id="urn:publicid:IDN+exogeni.net:dukevmsite+node+orca-vm-cloud" component_manager_id="urn:publicid:IDN+exogeni.net:dukevmsite+authority+am" component_name="orca-vm-cloud" exclusive="false" sliver_id="urn:publicid:IDN+exogeni.net:dukevmsite+sliver+51f158cb-e22e-40b0-9b04-4c5b720d1dad:nodeD">    
+            <location country="Unspecified" latitude="36.00016" longitude="-78.944145"/>    
+            <sliver_type name="m1.small">      
+                  <disk_image name="http://emmy9.casa.umass.edu/Disk_Images/ExoGENI/exogeni-umass-ovs-1.0.3.xml" version="de35e71b31771870bcdfcccb4dee11657ba145b8"/>      
+            </sliver_type>    
+            <services>      
+                  <login authentication="ssh-keys" hostname="152.3.144.125" port="22" username="root"/>      
+                  <ns5:services_post_boot_script type="velocity">#!/bin/bash
+# Automatically generated boot script
+
+# wget or curl must be installed on the image
+cd /tmp
+if [ -x `which wget 2&amp;gt;/dev/null` ]; then
+  wget -q http://emmy9.casa.umass.edu/InstaGENI_Images/install-script-exo.tar.gz
+else if [ -x `which curl 2&amp;gt;/dev/null` ]; then
+  curl http://emmy9.casa.umass.edu/InstaGENI_Images/install-script-exo.tar.gz &amp;gt; `basename http://emmy9.casa.umass.edu/InstaGENI_Images/install-script-exo.tar.gz`
+fi
+fi
+# untar
+tar -zxf `basename http://emmy9.casa.umass.edu/InstaGENI_Images/install-script-exo.tar.gz`
+execString=&amp;quot;/bin/bash -c \&amp;quot;/tmp/postboot_script_exo.sh urn:publicid:IDN+ch.geni.net:GIMITesting+slice+jo0705GIMI nodeD\&amp;quot;&amp;quot;
+eval $execString
+
+</ns5:services_post_boot_script>      
+            </services>    
+            <interface client_id="nodeD:if1" mac_address="fe:16:3e:00:23:3c">      
+                  <ip address="192.168.1.13" netmask="255.255.255.0" type="ipv4"/>      
+            </interface>    
+            <interface client_id="nodeD:if0" mac_address="fe:16:3e:00:63:b5">      
+                  <ip address="192.168.3.13" netmask="255.255.255.0" type="ipv4"/>      
+            </interface>    
+            <ns4:geni_sliver_info creation_time="2013-07-05T21:30:19.000Z" creator_urn="johren@bbn.com, urn:publicid:IDN+ch.geni.net+user+johren" expiration_time="2013-07-12T21:25:32.000Z" resource_id="dbc1-09.nicl.cs.duke.edu:4439df21-8d89-4348-8080-02606b8cc90f" start_time="2013-07-05T21:30:19.000Z" state="ready"/>    
+      </node>  
+      <node client_id="nodeB" component_id="urn:publicid:IDN+exogeni.net:dukevmsite+node+orca-vm-cloud" component_manager_id="urn:publicid:IDN+exogeni.net:dukevmsite+authority+am" component_name="orca-vm-cloud" exclusive="false" sliver_id="urn:publicid:IDN+exogeni.net:dukevmsite+sliver+51f158cb-e22e-40b0-9b04-4c5b720d1dad:nodeB">    
+            <location country="Unspecified" latitude="36.00016" longitude="-78.944145"/>    
+            <sliver_type name="m1.small">      
+                  <disk_image name="http://emmy9.casa.umass.edu/Disk_Images/ExoGENI/exogeni-umass-ovs-1.0.3.xml" version="de35e71b31771870bcdfcccb4dee11657ba145b8"/>      
+            </sliver_type>    
+            <services>      
+                  <login authentication="ssh-keys" hostname="152.3.144.124" port="22" username="root"/>      
+                  <ns5:services_post_boot_script type="velocity">#!/bin/bash
+# Automatically generated boot script
+
+# wget or curl must be installed on the image
+cd /tmp
+if [ -x `which wget 2&amp;gt;/dev/null` ]; then
+  wget -q http://emmy9.casa.umass.edu/InstaGENI_Images/install-script-exo.tar.gz
+else if [ -x `which curl 2&amp;gt;/dev/null` ]; then
+  curl http://emmy9.casa.umass.edu/InstaGENI_Images/install-script-exo.tar.gz &amp;gt; `basename http://emmy9.casa.umass.edu/InstaGENI_Images/install-script-exo.tar.gz`
+fi
+fi
+# untar
+tar -zxf `basename http://emmy9.casa.umass.edu/InstaGENI_Images/install-script-exo.tar.gz`
+execString=&amp;quot;/bin/bash -c \&amp;quot;/tmp/postboot_script_exo.sh urn:publicid:IDN+ch.geni.net:GIMITesting+slice+jo0705GIMI nodeB\&amp;quot;&amp;quot;
+eval $execString
+
+</ns5:services_post_boot_script>      
+            </services>    
+            <interface client_id="nodeB:if2" mac_address="fe:16:3e:00:2d:d1">      
+                  <ip address="192.168.4.10" netmask="255.255.255.0" type="ipv4"/>      
+            </interface>    
+            <interface client_id="nodeB:if0" mac_address="fe:16:3e:00:52:21">      
+                  <ip address="192.168.2.10" netmask="255.255.255.0" type="ipv4"/>      
+            </interface>    
+            <interface client_id="nodeB:if1" mac_address="fe:16:3e:00:2d:ec">      
+                  <ip address="192.168.1.10" netmask="255.255.255.0" type="ipv4"/>      
+            </interface>    
+            <ns4:geni_sliver_info creation_time="2013-07-05T21:30:19.000Z" creator_urn="johren@bbn.com, urn:publicid:IDN+ch.geni.net+user+johren" expiration_time="2013-07-12T21:25:32.000Z" resource_id="dbc1-05.nicl.cs.duke.edu:c5fd99db-c649-4588-86be-4316feac9fc8" start_time="2013-07-05T21:30:19.000Z" state="ready"/>    
+      </node>  
+      <node client_id="nodeE" component_id="urn:publicid:IDN+exogeni.net:dukevmsite+node+orca-vm-cloud" component_manager_id="urn:publicid:IDN+exogeni.net:dukevmsite+authority+am" component_name="orca-vm-cloud" exclusive="false" sliver_id="urn:publicid:IDN+exogeni.net:dukevmsite+sliver+51f158cb-e22e-40b0-9b04-4c5b720d1dad:nodeE">    
+            <location country="Unspecified" latitude="36.00016" longitude="-78.944145"/>    
+            <sliver_type name="m1.small">      
+                  <disk_image name="http://emmy9.casa.umass.edu/Disk_Images/ExoGENI/exogeni-umass-ovs-1.0.3.xml" version="de35e71b31771870bcdfcccb4dee11657ba145b8"/>      
+            </sliver_type>    
+            <services>      
+                  <login authentication="ssh-keys" hostname="152.3.144.133" port="22" username="root"/>      
+                  <ns5:services_post_boot_script type="velocity">#!/bin/bash
+# Automatically generated boot script
+
+# wget or curl must be installed on the image
+cd /tmp
+if [ -x `which wget 2&amp;gt;/dev/null` ]; then
+  wget -q http://emmy9.casa.umass.edu/InstaGENI_Images/install-script-exo.tar.gz
+else if [ -x `which curl 2&amp;gt;/dev/null` ]; then
+  curl http://emmy9.casa.umass.edu/InstaGENI_Images/install-script-exo.tar.gz &amp;gt; `basename http://emmy9.casa.umass.edu/InstaGENI_Images/install-script-exo.tar.gz`
+fi
+fi
+# untar
+tar -zxf `basename http://emmy9.casa.umass.edu/InstaGENI_Images/install-script-exo.tar.gz`
+execString=&amp;quot;/bin/bash -c \&amp;quot;/tmp/postboot_script_exo.sh urn:publicid:IDN+ch.geni.net:GIMITesting+slice+jo0705GIMI nodeE\&amp;quot;&amp;quot;
+eval $execString
+
+</ns5:services_post_boot_script>      
+            </services>    
+            <interface client_id="nodeE:if0" mac_address="fe:16:3e:00:be:fa">      
+                  <ip address="192.168.6.14" netmask="255.255.255.0" type="ipv4"/>      
+            </interface>    
+            <ns4:geni_sliver_info creation_time="2013-07-05T21:30:19.000Z" creator_urn="johren@bbn.com, urn:publicid:IDN+ch.geni.net+user+johren" expiration_time="2013-07-12T21:25:32.000Z" resource_id="dbc1-14.nicl.cs.duke.edu:a64f1e4f-9f90-4019-8cbd-2a2c693c27fd" start_time="2013-07-05T21:30:19.000Z" state="ready"/>    
+      </node>  
+      <node client_id="nodeC" component_id="urn:publicid:IDN+exogeni.net:dukevmsite+node+orca-vm-cloud" component_manager_id="urn:publicid:IDN+exogeni.net:dukevmsite+authority+am" component_name="orca-vm-cloud" exclusive="false" sliver_id="urn:publicid:IDN+exogeni.net:dukevmsite+sliver+51f158cb-e22e-40b0-9b04-4c5b720d1dad:nodeC">    
+            <location country="Unspecified" latitude="36.00016" longitude="-78.944145"/>    
+            <sliver_type name="m1.small">      
+                  <disk_image name="http://emmy9.casa.umass.edu/Disk_Images/ExoGENI/exogeni-umass-ovs-1.0.3.xml" version="de35e71b31771870bcdfcccb4dee11657ba145b8"/>      
+            </sliver_type>    
+            <services>      
+                  <login authentication="ssh-keys" hostname="152.3.144.130" port="22" username="root"/>      
+                  <ns5:services_post_boot_script type="velocity">#!/bin/bash
+# Automatically generated boot script
+
+# wget or curl must be installed on the image
+cd /tmp
+if [ -x `which wget 2&amp;gt;/dev/null` ]; then
+  wget -q http://emmy9.casa.umass.edu/InstaGENI_Images/install-script-exo.tar.gz
+else if [ -x `which curl 2&amp;gt;/dev/null` ]; then
+  curl http://emmy9.casa.umass.edu/InstaGENI_Images/install-script-exo.tar.gz &amp;gt; `basename http://emmy9.casa.umass.edu/InstaGENI_Images/install-script-exo.tar.gz`
+fi
+fi
+# untar
+tar -zxf `basename http://emmy9.casa.umass.edu/InstaGENI_Images/install-script-exo.tar.gz`
+execString=&amp;quot;/bin/bash -c \&amp;quot;/tmp/postboot_script_exo.sh urn:publicid:IDN+ch.geni.net:GIMITesting+slice+jo0705GIMI nodeC\&amp;quot;&amp;quot;
+eval $execString
+
+</ns5:services_post_boot_script>      
+            </services>    
+            <interface client_id="nodeC:if2" mac_address="fe:16:3e:00:3b:7c">      
+                  <ip address="192.168.3.12" netmask="255.255.255.0" type="ipv4"/>      
+            </interface>    
+            <interface client_id="nodeC:if0" mac_address="fe:16:3e:00:3c:69">      
+                  <ip address="192.168.5.12" netmask="255.255.255.0" type="ipv4"/>      
+            </interface>    
+            <interface client_id="nodeC:if3" mac_address="fe:16:3e:00:4b:26">      
+                  <ip address="192.168.6.12" netmask="255.255.255.0" type="ipv4"/>      
+            </interface>    
+            <interface client_id="nodeC:if1" mac_address="fe:16:3e:00:6a:e0">      
+                  <ip address="192.168.2.12" netmask="255.255.255.0" type="ipv4"/>      
+            </interface>    
+            <ns4:geni_sliver_info creation_time="2013-07-05T21:30:19.000Z" creator_urn="johren@bbn.com, urn:publicid:IDN+ch.geni.net+user+johren" expiration_time="2013-07-12T21:25:32.000Z" resource_id="dbc1-15.nicl.cs.duke.edu:bc8a9b5b-e4a9-4026-a7d6-1aee2653a770" start_time="2013-07-05T21:30:19.000Z" state="ready"/>    
+      </node>  
+      <link client_id="link3" sliver_id="urn:publicid:IDN+exogeni.net:dukevmsite+sliver+51f158cb-e22e-40b0-9b04-4c5b720d1dad:link3" vlantag="1016">    
+            <interface_ref client_id="nodeD:if1"/>    
+            <interface_ref client_id="nodeB:if1"/>    
+            <ns4:geni_sliver_info creation_time="2013-07-05T21:30:19.000Z" creator_urn="johren@bbn.com, urn:publicid:IDN+ch.geni.net+user+johren" expiration_time="2013-07-12T21:25:32.000Z" start_time="2013-07-05T21:30:19.000Z" state="ready"/>    
+      </link>  
+      <link client_id="link1" sliver_id="urn:publicid:IDN+exogeni.net:dukevmsite+sliver+51f158cb-e22e-40b0-9b04-4c5b720d1dad:link1" vlantag="1018">    
+            <interface_ref client_id="nodeC:if1"/>    
+            <interface_ref client_id="nodeB:if0"/>    
+            <ns4:geni_sliver_info creation_time="2013-07-05T21:30:19.000Z" creator_urn="johren@bbn.com, urn:publicid:IDN+ch.geni.net+user+johren" expiration_time="2013-07-12T21:25:32.000Z" start_time="2013-07-05T21:30:19.000Z" state="ready"/>    
+      </link>  
+      <link client_id="link4" sliver_id="urn:publicid:IDN+exogeni.net:dukevmsite+sliver+51f158cb-e22e-40b0-9b04-4c5b720d1dad:link4" vlantag="1020">    
+            <interface_ref client_id="nodeA:if1"/>    
+            <interface_ref client_id="nodeB:if2"/>    
+            <ns4:geni_sliver_info creation_time="2013-07-05T21:30:19.000Z" creator_urn="johren@bbn.com, urn:publicid:IDN+ch.geni.net+user+johren" expiration_time="2013-07-12T21:25:32.000Z" start_time="2013-07-05T21:30:19.000Z" state="ready"/>    
+      </link>  
+      <link client_id="link0" sliver_id="urn:publicid:IDN+exogeni.net:dukevmsite+sliver+51f158cb-e22e-40b0-9b04-4c5b720d1dad:link0" vlantag="1017">    
+            <interface_ref client_id="nodeC:if0"/>    
+            <interface_ref client_id="nodeA:if0"/>    
+            <ns4:geni_sliver_info creation_time="2013-07-05T21:30:19.000Z" creator_urn="johren@bbn.com, urn:publicid:IDN+ch.geni.net+user+johren" expiration_time="2013-07-12T21:25:32.000Z" start_time="2013-07-05T21:30:19.000Z" state="ready"/>    
+      </link>  
+      <link client_id="link2" sliver_id="urn:publicid:IDN+exogeni.net:dukevmsite+sliver+51f158cb-e22e-40b0-9b04-4c5b720d1dad:link2" vlantag="1019">    
+            <interface_ref client_id="nodeD:if0"/>    
+            <interface_ref client_id="nodeC:if2"/>    
+            <ns4:geni_sliver_info creation_time="2013-07-05T21:30:19.000Z" creator_urn="johren@bbn.com, urn:publicid:IDN+ch.geni.net+user+johren" expiration_time="2013-07-12T21:25:32.000Z" start_time="2013-07-05T21:30:19.000Z" state="ready"/>    
+      </link>  
+      <link client_id="link5" sliver_id="urn:publicid:IDN+exogeni.net:dukevmsite+sliver+51f158cb-e22e-40b0-9b04-4c5b720d1dad:link5" vlantag="1021">    
+            <interface_ref client_id="nodeE:if0"/>    
+            <interface_ref client_id="nodeC:if3"/>    
+            <ns4:geni_sliver_info creation_time="2013-07-05T21:30:19.000Z" creator_urn="johren@bbn.com, urn:publicid:IDN+ch.geni.net+user+johren" expiration_time="2013-07-12T21:25:32.000Z" start_time="2013-07-05T21:30:19.000Z" state="ready"/>    
+      </link>  
+      <ns3:geni_slice_info state="ready" urn="urn:publicid:IDN+ch.geni.net:GIMITesting+slice+jo0705GIMI" uuid="c40b7b4b-7d6f-47de-a99e-2ca490df4d49"/>  
+</rspec>
