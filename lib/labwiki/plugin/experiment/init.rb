@@ -1,6 +1,4 @@
 
-require 'labwiki/plugin/experiment/version'
-
 require 'labwiki/plugin/experiment/experiment_widget'
 require 'labwiki/plugin/experiment/renderer/experiment_setup_renderer'
 require 'labwiki/plugin/experiment/renderer/experiment_running_renderer'
@@ -10,8 +8,7 @@ require 'labwiki/plugin/experiment/ibook_widget'
 require 'labwiki/plugin/experiment/renderer/iwidget_create_renderer'
 
 LabWiki::PluginManager.register :experiment, {
-  :version => LabWiki::Plugin::Experiment::VERSION,
-
+  :version => LabWiki.plugin_version([2, 2, 'pre'], __FILE__),
   :selector => lambda do ||
   end,
   :on_session_init => lambda do
