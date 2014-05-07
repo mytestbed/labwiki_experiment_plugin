@@ -244,7 +244,7 @@ module LabWiki::Plugin::Experiment
 
       i_path = "#{irods_path}/#{LabWiki::Configurator[:gimi][:irods][:measurement_folder]}" rescue irods_path
 
-      dump_cmd << " --domain #{@name} --path #{i_path}"
+      dump_cmd << " --domain #{@name} --path '#{i_path}'"
 
       EM.popen(dump_cmd)
 
