@@ -30,7 +30,7 @@ module LabWiki::Plugin::Experiment
     def render_properties
       properties = @experiment.exp_properties
       #puts ">>>> #{properties}"
-      render_header "Experiment Properties", 'first'
+      render_section_header "Experiment Properties", 'first'
       div :class => 'experiment-status' do
         table :class => 'experiment-status table table-bordered', :style => 'width: auto'  do
           render_field_static :name => 'Name', :value => @experiment.name
@@ -68,7 +68,7 @@ module LabWiki::Plugin::Experiment
     end
 
     def render_graphs
-      render_header  "Graphs"
+      render_section_header  "Graphs"
       div :class => 'experiment-graphs' do
       end
     end
