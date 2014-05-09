@@ -104,7 +104,7 @@ module LabWiki::Plugin::Experiment
 
       @decl_properties.each do |p|
         p_name = p[:name]
-        p_value = entered_properties[p_name] || p[:default]
+        p_value = entered_properties[p_name.downcase] || p[:default]
 
         # User didn't input value and no default defined either
         next if p_value.nil?
