@@ -103,19 +103,16 @@ module LabWiki::Plugin::Experiment
       end]
 
       @decl_properties.each do |p|
-        p_name = p[:name]
-        p_value = entered_properties[p_name.downcase] || p[:default]
-
-        # User didn't input value and no default defined either
-        next if p_value.nil?
-
-        # If property name starts with res, and user didn't change default input
-        # Probably means user doesn't care about the actual value.
-        # Then we simply won't pass it to job service
-        # TODO: Define a more robust way for identifying resource properties
-        next if p_name =~ /^res/ && p_value == p[:default]
-
-        @exp_properties << { name: p_name, value: p_value }
+        ec_prop = { name: p[:name] }
+        if p[:type]
+          ec_prop[:resource] = { type: p[:type] }
+        else
+          ec_prop[:value] = entered_properties[p[:name].downcase] || p[:default]
+        end
+        # Skip when user didn't input value and no default defined either, and it is not a resource
+        unless ec_prop[:value].nil? && ec_prop[:resource].nil?
+          @exp_properties << ec_prop
+        end
       end
       _post_job(job)
 
@@ -308,7 +305,7 @@ module LabWiki::Plugin::Experiment
       parser = RubyParser.new
       sexp = parser.process(content)
       # Looking for 'defProperty'
-      properties = sexp.collect do |sx|
+      properties = sexp.map do |sx|
         #puts "SX: >>> #{sx}"
         next if sx.nil? || (sx.is_a? Symbol)
         next unless sx[0] == :call
@@ -316,9 +313,10 @@ module LabWiki::Plugin::Experiment
 
         #puts "PARSE: #{sx}"
         ph = {}
-        [:name, :default, :comment].each_with_index do |key, i|
+        [:name, :default, :comment, :type].each_with_index do |key, i|
           ph[key] = _parse_sex_string(sx[3 + i])
         end
+
         if ph.empty?
           warn "Wrong RubyParser version"
           ph = nil
@@ -331,14 +329,16 @@ module LabWiki::Plugin::Experiment
     end
 
     def _parse_sex_string(sx)
+      return nil if sx.nil?
       case sx[0]
       when :str
         return sx[1];
       when :lit
         #puts "LIT #{sx[1]}-#{sx[1].class}"
         return sx[1];
+      else
+        return nil
       end
-      nil
     end
   end # class
 

@@ -34,31 +34,37 @@ module LabWiki::Plugin::Experiment
     def render_field(index, prop)
       comment = prop[:comment]
       name = prop[:name].downcase
-      type = prop[:type] || :text
+      field_type = prop[:field_type] || :text
+      type = prop[:type]
 
       fname = "prop" + (index >= 0 ? index.to_s : name)
       tr :class => fname do
-        td name.gsub(/_/, ' ') + ':', :class => "desc" unless type.to_sym == :hidden
-        td :class => "input #{fname}", :colspan => (comment ? 1 : 2) do
-          case type.to_sym
-          when :text
-            input :name => fname, :type => "text", :class => "field text fn",
-              :value => prop[:default] || "", :size => prop[:size] || 16, :tabindex => (@tab_index += 1)
-          when :hidden
-            input :name => fname, :type => "hidden", :value => prop[:default] || "", :tabindex => (@tab_index += 1)
-          when :select
-            select(name: fname) do
-              prop[:options] && prop[:options].each do |opt|
-                option(value: opt) { text opt }
+        td name.gsub(/_/, ' ') + ':', :class => "desc" unless field_type.to_sym == :hidden
+
+        if type
+          # This is a resource, it won't accept user input
+          td :colspan => (comment ? 1 : 2) do
+            span type, :class => 'label label-info' if type
+          end
+        else
+          td :class => "input #{fname}", :colspan => (comment ? 1 : 2) do
+            case field_type.to_sym
+            when :text
+              input :name => fname, :type => "text", :class => "field text fn",
+                :value => prop[:default] || "", :size => prop[:size] || 16, :tabindex => (@tab_index += 1)
+            when :hidden
+              input :name => fname, :type => "hidden", :value => prop[:default] || "", :tabindex => (@tab_index += 1)
+            when :select
+              select(name: fname) do
+                prop[:options] && prop[:options].each do |opt|
+                  option(value: opt) { text opt }
+                end
               end
             end
           end
         end
-        if comment
-          td :class => "comment" do
-            text comment
-          end
-        end
+
+        td comment, :class => "comment" if comment
       end
     end
 

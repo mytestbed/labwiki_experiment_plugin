@@ -19,14 +19,14 @@ module LabWiki::Plugin::Experiment
 
             geni_projs = OMF::Web::SessionStore[:projects, :geni_portal]
             if geni_projs && !geni_projs.empty? && LabWiki::Configurator[:gimi] && LabWiki::Configurator[:gimi][:ges]
-              render_field(-1, name: 'Project', type: :select, options: geni_projs.map {|v| v[:name]})
-              render_field(-1, name: 'Experiment_context', type: :select)
-              render_field(-1, name: 'Slice', type: :select)
+              render_field(-1, name: 'Project', field_type: :select, options: geni_projs.map {|v| v[:name]})
+              render_field(-1, name: 'Experiment_context', field_type: :select)
+              render_field(-1, name: 'Slice', field_type: :select)
             else
               if LabWiki::Configurator[:plugins][:experiment][:ignore_slice]
-                render_field(-1, name: 'Slice', type: :hidden, default: "default_slice")
+                render_field(-1, name: 'Slice', field_type: :hidden, default: "default_slice")
               else
-                render_field(-1, name: 'Slice', type: :text, default: "default_slice")
+                render_field(-1, name: 'Slice', field_type: :text, default: "default_slice")
               end
             end
 
