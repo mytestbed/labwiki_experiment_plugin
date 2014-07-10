@@ -4,6 +4,7 @@ require 'omf_web'
 require 'omf-web/content/repository'
 #require 'omf_oml/table'
 require 'omf-web/session_store'
+require 'httparty'
 
 require 'labwiki/plugin/experiment/oml_connector'
 

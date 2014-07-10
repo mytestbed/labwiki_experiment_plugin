@@ -25,7 +25,7 @@ module LabWiki::Plugin::Experiment
       schema = OMF::OML::OmlSchema.new [:time, [:level, :integer], :logger, :data]
       start_time = nil
 
-      q = connection[:omf_ec_log].select(:time, :level, :logger, :data)
+      q = connection[:omf_ec_log].select(:time, :level, :logger, :data).where('level > 0')
       offset = 0
       handler = _log_processor
       @t_q = LabWiki::Plugin::Experiment::Util::retry(DEF_QUERY_INTERVAL) do
