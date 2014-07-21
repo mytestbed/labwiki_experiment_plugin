@@ -15,7 +15,8 @@ module LabWiki::Plugin::Experiment
     CLASS2TYPE = {
       Fixnum => 'int32',
       Float => 'double',
-      String => 'string'
+      String => 'string',
+      BigDecimal => 'double'
     }
 
     attr_reader :name, :type, :mstreams
