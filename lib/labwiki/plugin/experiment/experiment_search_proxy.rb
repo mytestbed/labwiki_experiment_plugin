@@ -44,8 +44,10 @@ module LabWiki::Plugin::Experiment
         raise LabWiki::RetrySearchLaterException.new
       end
       experiments = result[:jobs].map do |r|
-        {url: r["href"], name: r["name"], status: r['status'],
-          mime_type: 'experiment', plugin: 'experiment'}
+        {
+          url: r["href"], name: r["name"], status: r['status'],
+          mime_type: 'experiment', widget: 'experiment' #, plugin: 'experiment'
+        }
       end
       experiments.concat(files)
     end
