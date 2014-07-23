@@ -105,6 +105,12 @@ module LabWiki::Plugin::Experiment
       @decl_properties.each do |p|
         p_name = p[:name]
         p_value = entered_properties[p_name.downcase] || p[:default]
+        
+        # Auto-configure slice name to generate resource ID for user
+        if ((p_name.to_s).include? "resource")
+            # puts "JS: Property is a resource #{slice}"
+            p_value.to_s << "-" << slice
+        end
 
         # User didn't input value and no default defined either
         next if p_value.nil?
