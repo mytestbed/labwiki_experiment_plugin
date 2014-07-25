@@ -116,6 +116,10 @@ div.experiment-graph-caption {
   width: auto;  /* overriding bootstrap */
 }
 
+.experiment-setup .form-control {
+  width: auto !important;
+}
+
 .experiment-setup td.input {
   /* width: 60%; */
   font-family: inherit;

@@ -17,18 +17,12 @@ module LabWiki::Plugin::Experiment
           table :class => 'experiment-setup', :style => 'width: auto' do
             render_field -1, :name => 'Name', :size => 24, :default => @experiment.name
 
-            geni_projs = OMF::Web::SessionStore[:projects, :geni_portal]
-            if geni_projs && !geni_projs.empty? && LabWiki::Configurator[:gimi] && LabWiki::Configurator[:gimi][:ges]
-              render_field(-1, name: 'Project', field_type: :select, options: geni_projs.map {|v| v[:name]})
-              render_field(-1, name: 'Experiment_context', field_type: :select)
-              render_field(-1, name: 'Slice', field_type: :select)
-            else
-              if LabWiki::Configurator[:plugins][:experiment][:ignore_slice]
-                render_field(-1, name: 'Slice', field_type: :hidden, default: "default_slice")
-              else
-                render_field(-1, name: 'Slice', field_type: :text, default: "default_slice")
-              end
+            projects = OMF::Web::SessionStore[:projects, :user]
+            if projects && !projects.empty?
+              render_field(-1, name: 'Project', field_type: :select, options: projects.map {|v| v[:name]})
             end
+
+            render_field(-1, name: 'Slice', field_type: :text, default: "default_slice")
 
             render_field_static :name => 'Script', :value => @experiment.url, :url => "lw:prepare/source_edit?url=#{@experiment.url}"
             properties.each_with_index do |prop, i|
@@ -55,20 +49,6 @@ module LabWiki::Plugin::Experiment
         script: @experiment.url,
         session_id: OMF::Web::SessionStore.session_id
       }
-
-      if LabWiki::Configurator[:gimi] && LabWiki::Configurator[:gimi][:ges]
-        opts[:geni_projects] = OMF::Web::SessionStore[:projects, :geni_portal]
-        javascript %{
-          var geni_projects = #{OMF::Web::SessionStore[:projects, :geni_portal].to_json};
-
-          if (typeof(window.exp_list) === "undefined") {
-            window.exp_list = new ExpListView();
-          }
-
-          window.exp_list.setElement($('select[name="propexperiment_context"]'));
-          window.exp_list.setupExpSelect();
-        }
-      end
 
       javascript %{
         require(['plugin/experiment/js/experiment_setup'], function(ExperimentSetup) {

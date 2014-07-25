@@ -50,12 +50,12 @@ module LabWiki::Plugin::Experiment
           td :class => "input #{fname}", :colspan => (comment ? 1 : 2) do
             case field_type.to_sym
             when :text
-              input :name => fname, :type => "text", :class => "field text fn",
+              input :name => fname, :type => "text", :class => "field fn form-control input-sm",
                 :value => prop[:default] || "", :size => prop[:size] || 16, :tabindex => (@tab_index += 1)
             when :hidden
               input :name => fname, :type => "hidden", :value => prop[:default] || "", :tabindex => (@tab_index += 1)
             when :select
-              select(name: fname) do
+              select(name: fname, :class => "form-control input-sm") do
                 prop[:options] && prop[:options].each do |opt|
                   option(value: opt) { text opt }
                 end

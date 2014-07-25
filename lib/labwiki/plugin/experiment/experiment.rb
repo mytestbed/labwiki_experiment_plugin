@@ -155,10 +155,6 @@ module LabWiki::Plugin::Experiment
       _stop_job
     end
 
-    def dump
-      _dump
-    end
-
     def _init_oml
       #status_schema = [[:time, :int], :phase, [:completion, :float], :message]
       status_schema = [:type, :message]
@@ -224,29 +220,18 @@ module LabWiki::Plugin::Experiment
       return reply
     end
 
-    def _dump
-      if LabWiki::Configurator[:gimi] && LabWiki::Configurator[:gimi][:dump_script]
-        dump_cmd = File.expand_path(LabWiki::Configurator[:gimi][:dump_script])
-      else
-        return { error: "Dump script not configured." }
+    def dump
+      return { error: "OML database NOT connected" } unless @oml_connector.connected?
+
+      if @oml_url =~ /postgres:\/\/(.+):(.+)@(.+)\/(.+)/
+        user, password, host, dbname = $1, $2, $3, $4
+        host, port = *host.split(':')
+        port ||= 5432
+        dump_filename = "#{dbname}.#{Time.now.to_i}.pg.sql"
+        dump_cmd = "PGPASSWORD=#{password} pg_dump -O -U #{user} -h #{host} -p #{port} #{dbname} > /tmp/#{dump_filename}"
       end
-
-      job_service_cfg = LabWiki::Configurator[:plugins][:experiment][:job_service] rescue nil
-      job_service_url = "#{job_service_cfg[:host]}:#{job_service_cfg[:port]}" rescue nil
-      return { error: "Job service not configured." } if job_service_url.nil?
-
-      irods_path = HTTParty.get("http://#{job_service_url}/jobs/#{@name}")["irods_path"]
-      return { error: "Cannot find iRODS path for experiment(task): #{@name}" } if irods_path.nil?
-
-      irods_web_url = "https://www.irods.org/web/browse.php#ruri=#{OMF::Web::SessionStore[:id, :irods_user]}.geniRenci@geni-gimi.renci.org:1247/geniRenci/home/gimiadmin/#{irods_path}"
-
-      i_path = "#{irods_path}/#{LabWiki::Configurator[:gimi][:irods][:measurement_folder]}" rescue irods_path
-
-      dump_cmd << " --domain #{@name} --path '#{i_path}'"
-
-      EM.popen(dump_cmd)
-
-      { success: "Dump script triggered and it will take a while. <br /> You could access the file via <a href='#{irods_web_url}' target='_blank'>iRODS web client</a>." }
+      `#{dump_cmd}`
+      $?.exitstatus == 0 ? { success: dump_filename } : { error: 'Database dump failed' }
     end
 
     def disconnect_db_connections
