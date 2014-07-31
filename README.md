@@ -1,10 +1,8 @@
-labwiki_experiment_plugin
-=========================
+# labwiki_experiment_plugin
 
 A plugin for Labwiki to prepare, execute, and monitor OMF experiments.
 
-iBook Widget
-------------
+## iBook Widget
 
 This plugin also provides support for creating iBook widgets to run specific
 experiments and later interact with them.
@@ -22,4 +20,5 @@ An example would be ('width' and 'height' are optional):
 
 This creates a 'git_default_repo_oidl_simple_oml_test_rb.wdgt' in 'build'. Simply drag that directory
 onto *iBooks Author*.
+
 
