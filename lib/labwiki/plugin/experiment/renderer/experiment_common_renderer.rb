@@ -56,8 +56,13 @@ module LabWiki::Plugin::Experiment
               input :name => fname, :type => "hidden", :value => prop[:default] || "", :tabindex => (@tab_index += 1)
             when :select
               select(name: fname, :class => "form-control input-sm") do
-                prop[:options] && prop[:options].each do |opt|
-                  option(value: opt) { text opt }
+                prop[:options] && prop[:options].each do |opt_key, opt_val|
+                  opt_val ||= opt_key
+                  if opt_val == prop[:selected]
+                    option(value: opt_val, :selected => '') { text opt_key }
+                  else
+                    option(value: opt_val) { text opt_key }
+                  end
                 end
               end
             end

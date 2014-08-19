@@ -19,7 +19,9 @@ module LabWiki::Plugin::Experiment
 
             projects = OMF::Web::SessionStore[:projects, :user]
             if projects && !projects.empty?
-              render_field(-1, name: 'Project', field_type: :select, options: projects.map {|v| v[:name]})
+              render_field(-1, name: 'Project', field_type: :select,
+                           options: projects.map {|v| v[:name]},
+                           selected: projects.find { |p| p[:uuid].to_s == OMF::Web::SessionStore[:current_project, :user].to_s }.try(:[], :name))
             end
 
             render_field(-1, name: 'Slice', field_type: :text, default: "default_slice")
