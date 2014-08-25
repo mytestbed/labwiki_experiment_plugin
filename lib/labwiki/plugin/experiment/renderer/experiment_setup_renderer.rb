@@ -15,7 +15,7 @@ module LabWiki::Plugin::Experiment
       form :id => fid, :class => 'start-form' do
         if properties
           table :class => 'experiment-setup', :style => 'width: auto' do
-            render_field -1, :name => 'Name', :size => 24, :default => @experiment.name
+            render_field -1, :name => 'Name', :size => 24, :comment => "Experiment name", :default => @experiment.name
 
             projects = OMF::Web::SessionStore[:projects, :user]
             if projects && !projects.empty?
@@ -24,7 +24,13 @@ module LabWiki::Plugin::Experiment
                            selected: projects.find { |p| p[:uuid].to_s == OMF::Web::SessionStore[:current_project, :user].to_s }.try(:[], :name))
             end
 
-            render_field(-1, name: 'Slice', field_type: :text, default: "default_slice")
+            slices = OMF::Web::SessionStore[:slices, :user]
+            if slices && !slices.empty?
+              render_field(-1, name: 'Slice', field_type: :select,
+                           options: {}.tap { |hash| slices.each { |v| hash[v["name"]] = v["slice_urn"] } } )
+            else
+              render_field(-1, name: 'Slice', field_type: :text, default: "default_slice")
+            end
 
             render_field_static :name => 'Script', :value => @experiment.url, :url => "lw:prepare/source_edit?url=#{@experiment.url}"
             properties.each_with_index do |prop, i|
