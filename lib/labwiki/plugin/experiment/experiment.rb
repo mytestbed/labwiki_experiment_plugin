@@ -221,17 +221,14 @@ module LabWiki::Plugin::Experiment
     end
 
     def dump
-      return { error: "OML database NOT connected" } unless @oml_connector.connected?
-
-      if @oml_url =~ /postgres:\/\/(.+):(.+)@(.+)\/(.+)/
-        user, password, host, dbname = $1, $2, $3, $4
-        host, port = *host.split(':')
-        port ||= 5432
-        dump_filename = "#{dbname}.#{Time.now.to_i}.pg.sql"
-        dump_cmd = "PGPASSWORD=#{password} pg_dump -O -U #{user} -h #{host} -p #{port} #{dbname} > /tmp/#{dump_filename}"
+      if @job_url
+        unless js = @config_opts[:job_service]
+          raise "Missing configuration 'job_service"
+        end
+        debug "SEND dump request to 'http://#{js[:host]}:#{js[:port]}/dump'>>>"
+        reply = HTTParty.post("http://#{js[:host]}:#{js[:port]}/dump", body: JSON.pretty_generate({ db_name: @name }))
+        reply
       end
-      `#{dump_cmd}`
-      $?.exitstatus == 0 ? { success: dump_filename } : { error: 'Database dump failed' }
     end
 
     def disconnect_db_connections
