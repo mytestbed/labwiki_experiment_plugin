@@ -42,9 +42,31 @@ module LabWiki::Plugin::Experiment
         td name.gsub(/_/, ' ') + ':', :class => "desc" unless field_type.to_sym == :hidden
 
         if type
-          # This is a resource, it won't accept user input
-          td :colspan => (comment ? 1 : 2) do
-            span type, :class => 'label label-info' if type
+          case type
+          when /^res/
+            # This is a resource, it won't accept user input
+            td :colspan => (comment ? 1 : 2) do
+              span type, :class => 'label label-info' if type
+            end
+          when /^r$/
+            r_scripts = []
+            OMF::Web::SessionStore[:execute, :repos].each do |repo|
+              r_scripts += repo.find_files(/.+\.r$/)
+            end
+            unless r_scripts.empty?
+              # This is a verification script, show as a list
+              td :class => "input #{fname}", :colspan => (comment ? 1 : 2) do
+                select(name: fname, :class => "form-control input-sm") do
+                  r_scripts.each do |v|
+                    if v[:name] == prop[:default]
+                      option(value: v[:path], :selected => '') { text v[:name] }
+                    else
+                      option(value: v[:path]) { text v[:name] }
+                    end
+                  end
+                end
+              end
+            end
           end
         else
           td :class => "input #{fname}", :colspan => (comment ? 1 : 2) do
