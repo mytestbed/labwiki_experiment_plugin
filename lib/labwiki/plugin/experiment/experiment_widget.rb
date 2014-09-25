@@ -37,9 +37,8 @@ module LabWiki::Plugin::Experiment
       gimi_info = { irods_path: parameters.delete(:propexperiment_context) }
       slice = parameters.delete(:propslice)
       name = parameters.delete(:propname)
-
       # Left in parameters are exp properties
-      @experiment.start_experiment(parameters, slice, name, gimi_info)
+      @experiment.start_experiment(parameters, slice, name, gimi_info, params)
       nil
     end
 

@@ -58,7 +58,7 @@ module LabWiki::Plugin::Experiment
       @session_context = OMF::Web::SessionStore.session_context
     end
 
-    def start_experiment(entered_properties, slice, name, gimi_info = {})
+    def start_experiment(entered_properties, slice, name, gimi_info = {}, params = {})
       unless @state == :new
         warn "Attempt to start an already running or finished experiment"
         return # TODO: Raise appropriate exception
@@ -74,12 +74,12 @@ module LabWiki::Plugin::Experiment
       info "Starting experiment name: '#{@name}' url: '#{@url}'"
 
       _init_oml()
-      _schedule_job(name, entered_properties, slice, gimi_info)
+      _schedule_job(name, entered_properties, slice, gimi_info, params)
 
       @start_time = Time.now
     end
 
-    def _schedule_job(name, entered_properties, slice, gimi_info)
+    def _schedule_job(name, entered_properties, slice, gimi_info, params)
       job = {
         name: name,
         username: OMF::Web::SessionStore[:id, :user]
@@ -105,16 +105,28 @@ module LabWiki::Plugin::Experiment
 
       @decl_properties.each do |p|
         ec_prop = { name: p[:name] }
+        ec_prop_value = entered_properties[p[:name].downcase] || p[:default]
+
         if p[:type]
-          ec_prop[:resource] = { type: p[:type] }
+          if p[:type] != "r"
+            ec_prop[:resource] = { type: p[:type] }
+          else
+            job[:r_scripts] ||= []
+            job[:r_scripts] << {
+              name: p[:name],
+              content: Base64.encode64(Zlib::Deflate.deflate(OMF::Web::ContentRepository.read_content(ec_prop_value, params)))
+            }
+            next
+          end
         else
-          ec_prop[:value] = entered_properties[p[:name].downcase] || p[:default]
+          ec_prop[:value] = ec_prop_value
         end
         # Skip when user didn't input value and no default defined either, and it is not a resource
         unless ec_prop[:value].nil? && ec_prop[:resource].nil?
           @exp_properties << ec_prop
         end
       end
+
       _post_job(job)
 
       self.state = :pending

@@ -58,10 +58,10 @@ module LabWiki::Plugin::Experiment
               td :class => "input #{fname}", :colspan => (comment ? 1 : 2) do
                 select(name: fname, :class => "form-control input-sm") do
                   r_scripts.each do |v|
-                    if v[:name] == prop[:default]
-                      option(value: v[:path], :selected => '') { text v[:name] }
+                    if v[:name] == "#{prop[:default]}.r"
+                      option(value: v[:url], :selected => '') { text v[:name] }
                     else
-                      option(value: v[:path]) { text v[:name] }
+                      option(value: v[:url]) { text v[:name] }
                     end
                   end
                 end
