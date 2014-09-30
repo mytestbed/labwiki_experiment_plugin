@@ -1,4 +1,5 @@
 require 'labwiki/plugin/experiment/graph_adapter'
+require 'httparty'
 
 module LabWiki::Plugin::Experiment
 
@@ -51,9 +52,26 @@ module LabWiki::Plugin::Experiment
     def _row_processor
       schema = @table.schema
       lambda do |rec|
-        puts rec.inspect
         if rec[:domain] == "sys" && rec[:key] == "state"
           @experiment.state = rec[:value]
+          if @experiment.completed?
+            EM.defer do
+              begin
+                s = HTTParty.get(@experiment.job_url)
+                v = HTTParty.get("#{@experiment.job_url}/verifications")["verification"].first
+                if v && v["href"]
+                  r = HTTParty.get(v["href"])["result"]
+                  r.each do |k, v|
+                    v = v.nil? ? "_undefined_" : v.to_s
+                    @table << schema.hash_to_row(domain: "verify", key: k, value: v)
+                  end
+                end
+              rescue => ex
+                warn "Exception while querying a job - #{ex}"
+                debug "While querying a job - \n\t#{ex.backtrace.join("\n\t")}"
+              end
+            end
+          end
         end
         @table << schema.hash_to_row(rec)
       end

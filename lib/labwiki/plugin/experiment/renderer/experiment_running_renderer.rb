@@ -56,6 +56,9 @@ module LabWiki::Plugin::Experiment
             # end
           # end
         end
+
+        table id: "#{@data_id}_verify_table", class: 'experiment-properties table table-bordered', style: 'width: auto; border: 0px;' do
+        end
       end
     end
 

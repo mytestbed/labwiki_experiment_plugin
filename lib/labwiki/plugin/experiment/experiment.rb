@@ -85,7 +85,6 @@ module LabWiki::Plugin::Experiment
         username: OMF::Web::SessionStore[:id, :user]
       }
       job[:slice] = slice if slice
-      job[:irods_path] = gimi_info[:irods_path]
 
       unless @oedl_script
         raise "Don't have the oedl script content"
@@ -111,11 +110,8 @@ module LabWiki::Plugin::Experiment
           if p[:type] != "r"
             ec_prop[:resource] = { type: p[:type] }
           else
-            job[:r_scripts] ||= []
-            job[:r_scripts] << {
-              name: p[:name],
-              content: Base64.encode64(Zlib::Deflate.deflate(OMF::Web::ContentRepository.read_content(ec_prop_value, params)))
-            }
+            job[:r_scripts] ||= {}
+            job[:r_scripts][p[:name]] = Base64.encode64(Zlib::Deflate.deflate(OMF::Web::ContentRepository.read_content(ec_prop_value, params)))
             next
           end
         else
@@ -144,6 +140,7 @@ module LabWiki::Plugin::Experiment
     end
 
     def state=(state)
+      # Do NOT switch from ended to running
       return if @state.to_s =~ /aborted|failed|finished/ && state.to_s =~ /running/
       @state = state
       send_status(:state, state)
