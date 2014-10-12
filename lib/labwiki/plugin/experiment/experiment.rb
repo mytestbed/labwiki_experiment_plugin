@@ -86,6 +86,10 @@ module LabWiki::Plugin::Experiment
       }
       job[:slice] = slice if slice
 
+      if LabWiki::Configurator['plugins/topology/slice_service']
+        job[:slice_service] = LabWiki::Configurator['plugins/topology/slice_service/url']
+      end
+
       unless @oedl_script
         raise "Don't have the oedl script content"
       end
