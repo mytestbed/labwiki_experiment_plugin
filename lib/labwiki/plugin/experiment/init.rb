@@ -34,9 +34,9 @@ LabWiki::PluginManager.register :experiment, {
         end
       end,
       :widget_class => LabWiki::Plugin::Experiment::ExperimentWidget,
-      :search => lambda do |pat, opts, wopts|
+      :search => lambda do |pat, opts, wopts, &cbk|
         opts[:mime_type] = 'text/ruby'
-        LabWiki::Plugin::Experiment::ExperimentSearchProxy.instance.find(pat, opts, wopts)
+        LabWiki::Plugin::Experiment::ExperimentSearchProxy.instance.find(pat, opts, wopts, &cbk)
       end
     }, {
       :name => 'iwidget',
