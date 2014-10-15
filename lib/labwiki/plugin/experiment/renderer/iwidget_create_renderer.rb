@@ -5,7 +5,7 @@ module LabWiki::Plugin::Experiment
 
   class IWidgetCreateRenderer < ExperimentCommonRenderer
 
-    def initialize(widget)
+    def initialize(widget, opts = {})
       super widget, nil
     end
 
@@ -17,9 +17,9 @@ module LabWiki::Plugin::Experiment
         div class: 'content experiment-description' do
           render_content
         end
-        div class: 'busy' do
-          text 'BUSY'
-        end
+        # div class: 'busy' do
+        #   text 'BUSY'
+        # end
       end
     end
 

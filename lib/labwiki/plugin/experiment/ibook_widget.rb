@@ -6,6 +6,7 @@ module LabWiki::Plugin::Experiment
   # Maintains the context for a particular experiment in this user context.
   #
   class IBookWidget < LabWiki::ColumnWidget
+    renderer :iwidget_create_renderer
 
     def self.create_widget_zip(req)
       args = req.params['parameters']
@@ -72,13 +73,13 @@ module LabWiki::Plugin::Experiment
       @title = 'New iBook Widget'
     end
 
-    def on_new_iwidget(params, req)
-      # nothing to do really
-    end
-
-    def content_renderer()
-      'iwidget_create_renderer'
-    end
+    # def on_new_iwidget(params, req)
+    #   # nothing to do really
+    # end
+    #
+    # def content_renderer()
+    #   'iwidget_create_renderer'
+    # end
 
     # def mime_type
       # 'experiment/iwidget'
