@@ -2,7 +2,7 @@
 WidgetConfig = {
   url: '%HOST%',
   path: '/_column',
-  type: 'GET',
+  type: 'POST',
   opts: {
     col: 'execute',
     action: 'get_content',
