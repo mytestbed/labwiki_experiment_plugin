@@ -1,0 +1,49 @@
+
+.experiment-setup td.desc, 
+.experiment-setup .form-control {
+    font-size: 145%!important;
+}
+
+.experiment-setup td.comment {
+    font-size: 125%!important;
+}
+
+.experiment-setup td.input {
+    font-weight: normal!important;
+}
+
+.experiment-description tr {
+    line-height: 3em;
+}
+
+.widget-title-block {
+    display: none!important;
+}
+
+.experiment-description .start-form {
+    padding-top: 40px!important;
+    padding-left: 50px!important;
+}
+
+.experiment-description .btn {
+    margin-top: 20px;
+    font-size: 145%!important;
+}
+
+/******* EXPERIMENT RUN *****/
+
+div.experiment-status {
+    font-size: 145%!important;
+}
+
+div.widget_body_experiment {
+    padding-top: 40px!important;
+    padding-left: 50px!important;
+}
+
+div.widget_body_experiment h3 {
+    padding-left: 10px;
+    font-size: 150%;
+    padding-top: 5px;
+    padding-bottom: 10px;
+}
