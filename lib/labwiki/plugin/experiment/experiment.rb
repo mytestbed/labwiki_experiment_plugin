@@ -86,6 +86,8 @@ module LabWiki::Plugin::Experiment
       }
       job[:slice] = slice if slice
 
+      job[:assertion] = OMF::Web::SessionStore[:assertion, :user] if OMF::Web::SessionStore[:assertion, :user]
+
       if LabWiki::Configurator['plugins/topology/slice_service']
         job[:slice_service] = LabWiki::Configurator['plugins/topology/slice_service/url']
       end
