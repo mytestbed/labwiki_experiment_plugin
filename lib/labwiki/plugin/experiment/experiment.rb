@@ -27,6 +27,10 @@ module LabWiki::Plugin::Experiment
     def initialize(params, config_opts)
       debug "PARAMS: #{params}, CONFIG: #{config_opts}"
 
+      unless @job_service = config_opts[:job_service]
+        raise "Missing configuration 'job_service"
+      end
+
       case params[:mime_type]
       when "text/ruby"
         @state = :new
@@ -43,14 +47,10 @@ module LabWiki::Plugin::Experiment
       else
         @name = params[:name]
         @state = :unknown
-        @url = params[:url]
+        @job_url = params[:url] || "http://#{@job_service[:host]}:#{@job_service[:port]}/jobs/#{@name}"
         @decl_properties = []
         _init_oml()
-        _query_job_status(@url)
-      end
-
-      unless @job_service = config_opts[:job_service]
-        raise "Missing configuration 'job_service"
+        _query_job_status(@job_url)
       end
 
       @exp_properties = []

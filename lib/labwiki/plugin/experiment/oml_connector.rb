@@ -76,13 +76,14 @@ module LabWiki::Plugin::Experiment
       t_connect = LabWiki::Plugin::Experiment::Util::retry(10) do |hdl|
         begin
           connection = Sequel.connect(db_uri, pool_class: EM::PG::ConnectionPool, max_connections: 2)
+
           synchronize do
             @connection = connection
             @connected = true
           end
           _on_connected(connection)
         rescue => e
-          if e.message =~ /PG::Error: FATAL:  database .+ does not exist/
+          if e.message =~ /PG::.+FATAL:  database .+ does not exist/
             debug "Database '#{db_uri}' doesn't exist yet"
             # Experiment already finished, I won't look for DB any further
             hdl.done if @experiment.completed?
