@@ -27,6 +27,10 @@ module LabWiki::Plugin::Experiment
     def initialize(params, config_opts)
       debug "PARAMS: #{params}, CONFIG: #{config_opts}"
 
+      unless @job_service = config_opts[:job_service]
+        raise "Missing configuration 'job_service"
+      end
+
       case params[:mime_type]
       when "text/ruby"
         @state = :new
@@ -43,14 +47,19 @@ module LabWiki::Plugin::Experiment
       else
         @name = params[:name]
         @state = :unknown
-        @url = params[:url]
+        @job_url = params[:url]
+
+        raise StandardError, "Missing params[:url] to query job service" if @job_url.nil?
+
+        # It is for url type lw:exp_name.exp
+        if @job_url !~ /^http/
+          @name = params[:url].split('.')[0]
+          @job_url = "http://#{@job_service[:host]}:#{@job_service[:port]}/jobs/#{@name}"
+        end
+
         @decl_properties = []
         _init_oml()
-        _query_job_status(@url)
-      end
-
-      unless @job_service = config_opts[:job_service]
-        raise "Missing configuration 'job_service"
+        _query_job_status(@job_url)
       end
 
       @exp_properties = []
@@ -85,6 +94,8 @@ module LabWiki::Plugin::Experiment
         username: OMF::Web::SessionStore[:id, :user]
       }
       job[:slice] = slice if slice
+
+      job[:assertion] = OMF::Web::SessionStore[:assertion, :user] if OMF::Web::SessionStore[:assertion, :user]
 
       if LabWiki::Configurator['plugins/topology/slice_service']
         job[:slice_service] = LabWiki::Configurator['plugins/topology/slice_service/url']

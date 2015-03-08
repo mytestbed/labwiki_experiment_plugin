@@ -57,10 +57,10 @@ module LabWiki::Plugin::Experiment
           if @experiment.completed?
             EM.defer do
               begin
-                s = HTTParty.get(@experiment.job_url)
-                v = HTTParty.get("#{@experiment.job_url}/verifications")["verification"].first
+                v = JSON.parse(Net::HTTP.get(URI("#{@experiment.job_url}/verifications")))["verification"].first
                 if v && v["href"]
-                  r = HTTParty.get(v["href"])["result"]
+                  r = JSON.parse(Net::HTTP.get(URI(v["href"])))["result"]
+
                   r.each do |k, v|
                     v = v.nil? ? "_undefined_" : v.to_s
                     @table << schema.hash_to_row(domain: "verify", key: k, value: v)
