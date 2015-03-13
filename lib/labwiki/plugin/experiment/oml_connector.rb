@@ -75,7 +75,7 @@ module LabWiki::Plugin::Experiment
       info "Attempting to connect to OML backend (DB) on '#{db_uri}'"
       t_connect = LabWiki::Plugin::Experiment::Util::retry(10) do |hdl|
         begin
-          connection = Sequel.connect(db_uri, pool_class: EM::PG::ConnectionPool, max_connections: 2)
+          connection = Sequel.connect(db_uri, pool_class: :em_synchrony, max_connections: 2)
 
           synchronize do
             @connection = connection
