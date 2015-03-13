@@ -130,6 +130,11 @@ module LabWiki::Plugin::Experiment
             next
           end
         else
+          # FIXME Divya's logic to add slice name to generate resource ID for user, this will go if using slice service. Optional for now at lease.
+          if @config_opts[:append_slice_to_resource_name] == true && p[:name] =~ /resource/
+            ec_prop_value += "-#{slice}"
+          end
+
           ec_prop[:value] = ec_prop_value
         end
         # Skip when user didn't input value and no default defined either, and it is not a resource
