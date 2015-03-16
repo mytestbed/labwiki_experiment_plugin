@@ -55,6 +55,8 @@ module LabWiki::Plugin::Experiment
         @opts[:mapping] = JSON.parse(descr)
       when 'AXIS'
         @opts[:axis] = JSON.parse(descr)
+      when 'OPTS'
+        @opts[:opts] = JSON.parse(descr)
       # when 'STOP'
         # # ignore
       else
