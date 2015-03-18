@@ -76,49 +76,61 @@ module LabWiki::Plugin::Experiment
     end
 
     def _discover_schema(name, query)
-      debug "Initializing mstream '#{name}' (#{query})"
 
-      t_discover = LabWiki::Plugin::Experiment::Util::retry(DEF_QUERY_INTERVAL) do
-        first_row = nil
-
-        if connected?
-          begin
-            first_row = @connection.fetch(query).limit(1, 0).first
-          rescue => e
-            if e.message =~ /ERROR:  relation "(.*)" does not exist/
-              debug "Table '#{$1}' doesn't exist yet"
-              t_discover.cancel if @experiment.completed?
-            else
-              raise e
-            end
-          end
-
-          if first_row
-            t_discover.cancel
-            debug "First row to discover schema for '#{name}': #{first_row.inspect} - #{first_row.class}"
-            schema = first_row.map do |k, v|
-              unless type = CLASS2TYPE[v.class]
-                warn "Unknown type mapping for class '#{v.class}'"
-                type = :string
-              end
-              [k.to_sym, type]
-            end
-            table = nil
-            @experiment.session_context.call do
-              table = OmlConnector.create_oml_table("#{name}_#{object_id}", schema, @experiment)
-              _report_table name, table
-            end
-          end
-        end
-
-        if first_row.nil? && @experiment.completed?
-          t_discover.cancel
-        end
+      opts = {query: query}
+      opts[:check_interval] = 10 unless @experiment.completed?
+      debug ">>>>>>>>>>Initializing mstream '#{name}' (#{opts})"
+      #tname = "#{name}_#{object_id}"
+      table = @connection.create_table(nil, opts)
+      table.on_schema do |schema|
+        OMF::Web::DataSourceProxy.register_datasource table rescue warn $!
+        _report_table name, table
       end
 
-      synchronize do
-        @query_timers << t_discover
-      end
+
+
+
+      # t_discover = LabWiki::Plugin::Experiment::Util::retry(DEF_QUERY_INTERVAL) do
+      #   first_row = nil
+      #
+      #   if connected?
+      #     begin
+      #       first_row = @connection.fetch(query).limit(1, 0).first
+      #     rescue => e
+      #       if e.message =~ /ERROR:  relation "(.*)" does not exist/
+      #         debug "Table '#{$1}' doesn't exist yet"
+      #         t_discover.cancel if @experiment.completed?
+      #       else
+      #         raise e
+      #       end
+      #     end
+      #
+      #     if first_row
+      #       t_discover.cancel
+      #       debug "First row to discover schema for '#{name}': #{first_row.inspect} - #{first_row.class}"
+      #       schema = first_row.map do |k, v|
+      #         unless type = CLASS2TYPE[v.class]
+      #           warn "Unknown type mapping for class '#{v.class}'"
+      #           type = :string
+      #         end
+      #         [k.to_sym, type]
+      #       end
+      #       table = nil
+      #       @experiment.session_context.call do
+      #         table = OmlConnector.create_table("#{name}_#{object_id}", schema, @experiment)
+      #         _report_table name, table
+      #       end
+      #     end
+      #   end
+      #
+      #   if first_row.nil? && @experiment.completed?
+      #     t_discover.cancel
+      #   end
+      # end
+      #
+      # synchronize do
+      #   @query_timers << t_discover
+      # end
     end
 
     def _report_table(name, table)
@@ -134,7 +146,7 @@ module LabWiki::Plugin::Experiment
       end
       # OK, we now know all the schemas
       dss = @tables.map do |tname, descr|
-        _feed_table descr
+        #_feed_table descr
         opts = descr[:data_source].to_hash(name: tname)
         name = "#{@graph_name.downcase}:#{opts[:name]}"
         opts[:context] = @experiment.job_url + '/measurement_points/' + name
@@ -145,42 +157,42 @@ module LabWiki::Plugin::Experiment
       @experiment.send_status(:graph, @opts)
     end
 
-    def _feed_table(descr)
-      query = descr[:query]
-      table = descr[:table]
-      limit = DEF_QUERY_LIMIT
-      offset = 0
-      t_query = LabWiki::Plugin::Experiment::Util::retry(DEF_QUERY_INTERVAL) do
-        if connected?
-          begin
-            q = "#{query} LIMIT #{limit} OFFSET #{offset}"
-            rows = @connection.fetch(q).all
-            unless rows.empty?
-              debug ">>> Found #{rows.size} rows - offset #{offset}"
-              row_values = rows.map do |v|
-                if v.is_a? Hash
-                  v.values
-                else
-                  error "Rows not returned as hash, this should NOT happen. DB connected? #{connected?} - #{v}"
-                  nil
-                end
-              end.compact
-              table.add_rows row_values
-              offset += row_values.length
-            else
-              t_query.cancel if @experiment.completed?
-            end
-          rescue => e
-            warn "Exception while running query '#{q}' - #{e}"
-            rows = nil
-          end
-        end
-        false # keep on going
-      end
-      synchronize do
-        @query_timers << t_query
-      end
-    end
+    # def _feed_table(descr)
+    #   query = descr[:query]
+    #   table = descr[:table]
+    #   limit = DEF_QUERY_LIMIT
+    #   offset = 0
+    #   t_query = LabWiki::Plugin::Experiment::Util::retry(DEF_QUERY_INTERVAL) do
+    #     if connected?
+    #       begin
+    #         q = "#{query} LIMIT #{limit} OFFSET #{offset}"
+    #         rows = @connection.fetch(q).all
+    #         unless rows.empty?
+    #           debug ">>> Found #{rows.size} rows - offset #{offset}"
+    #           row_values = rows.map do |v|
+    #             if v.is_a? Hash
+    #               v.values
+    #             else
+    #               error "Rows not returned as hash, this should NOT happen. DB connected? #{connected?} - #{v}"
+    #               nil
+    #             end
+    #           end.compact
+    #           table.add_rows row_values
+    #           offset += row_values.length
+    #         else
+    #           t_query.cancel if @experiment.completed?
+    #         end
+    #       rescue => e
+    #         warn "Exception while running query '#{q}' - #{e}"
+    #         rows = nil
+    #       end
+    #     end
+    #     false # keep on going
+    #   end
+    #   synchronize do
+    #     @query_timers << t_query
+    #   end
+    # end
 
     def connected?
       @connection != nil

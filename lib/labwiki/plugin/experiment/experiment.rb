@@ -182,7 +182,7 @@ module LabWiki::Plugin::Experiment
     def _init_oml
       #status_schema = [[:time, :int], :phase, [:completion, :float], :message]
       status_schema = [:type, :message]
-      @status_table = OmlConnector.create_oml_table('status', status_schema, self)
+      @status_table = OmlConnector.create_table('status', status_schema, self)
       @oml_connector = OmlConnector.new(self)
     end
 

@@ -1,5 +1,6 @@
 require 'labwiki/plugin/experiment/graph_adapter'
 require 'httparty'
+require 'set'
 
 module LabWiki::Plugin::Experiment
 
@@ -18,42 +19,66 @@ module LabWiki::Plugin::Experiment
       @experiment = experiment
 
       schema = [:domain, :key, :value]
-      @table = OmlConnector.create_oml_table('ec', schema, experiment)
+      @table = OmlConnector.create_table('ec', schema, experiment)
+      _setup_ec_processor
       @data_source_proxy = OMF::Web::DataSourceProxy.for_source(:name => @table.name)[0]
-    end
+      @resources_in_group = Set.new
+      @resources_discovered = Set.new
+     end
 
     def on_connected(connection)
       @connection = connection
-      #schema = OMF::OML::OmlSchema.new [:time, [:level, :integer], :logger, :data]
-      start_time = nil
+      query = 'SELECT domain, key, value FROM omf_ec_meta_data ORDER BY oml_seq'
+      opts = {}
+      opts[:check_interval] = 10 unless @experiment.completed?
+      connection.feed_table(@table, query, opts)
 
-      q = connection[:omf_ec_meta_data].select(:domain, :key, :value).order(:oml_seq)
-      offset = 0
-      handler = _row_processor
-      @t_q = LabWiki::Plugin::Experiment::Util::retry(DEF_QUERY_INTERVAL) do
-        rows = q.limit(DEF_QUERY_LIMIT, offset).all
-        disconnect if rows.empty? && @experiment.completed?
-        offset += rows.size
-        rows.each do |m|
-          handler.call(m)
-        end
-        false # keep on going
-      end
+
+      # @connection = connection
+      # #schema = OMF::OML::OmlSchema.new [:time, [:level, :integer], :logger, :data]
+      # start_time = nil
+      #
+      # q = connection[:omf_ec_meta_data].select(:domain, :key, :value).order(:oml_seq)
+      # offset = 0
+      # handler = _row_processor
+      # @t_q = LabWiki::Plugin::Experiment::Util::retry(DEF_QUERY_INTERVAL) do
+      #   rows = q.limit(DEF_QUERY_LIMIT, offset).all
+      #   disconnect if rows.empty? && @experiment.completed?
+      #   offset += rows.size
+      #   rows.each do |m|
+      #     handler.call(m)
+      #   end
+      #   false # keep on going
+      # end
+    end
+
+    def on_new_resource_discovered(res_name)
+      @resources_discovered << res_name
+      @table << ['resources', 'up', @resources_discovered.intersection(@resources_in_group).size.to_s]
+    end
+
+    def on_new_resource_in_group(res_name)
+      @resources_in_group << res_name
+      @table << ['resources', 'known', @resources_in_group.size.to_s]
+    end
+
+    def on_progress_message(msg)
+      @table << ['progress', 'msg', msg]
     end
 
     def disconnect
       @t_q.cancel if @t_q
     end
 
-    # Returns a lambda to be called for every incoming record
-    # Primary function is to filter out graph descriptions and pass on the
-    # rest to the ec_table so it can be processed by the UI
+    # Setup a filter on the table to check for updates on "sys/state"
     #
-    def _row_processor
+    def _setup_ec_processor
       schema = @table.schema
-      lambda do |rec|
-        if rec[:domain] == "sys" && rec[:key] == "state"
-          @experiment.state = rec[:value]
+      @table.on_before_row_added do |row|
+        puts ">>>EC #{row}"
+        domain, key, value = row
+        if domain == "sys" && key == "state"
+          @experiment.state = value
           if @experiment.completed?
             EM.defer do
               begin
@@ -73,7 +98,7 @@ module LabWiki::Plugin::Experiment
             end
           end
         end
-        @table << schema.hash_to_row(rec)
+        row
       end
     end
 
