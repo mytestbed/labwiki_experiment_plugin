@@ -29,7 +29,8 @@ module LabWiki::Plugin::Experiment
       @tables = {}
       @mstreams = {}
       @opts = {
-        :margin => {:left => 80, :right => 50}
+        :margin => {:left => 80, :right => 50},
+        :exp_id => @experiment.name
       }
       @query_timers = []
       @experiment.add_graph_adapter(self)
