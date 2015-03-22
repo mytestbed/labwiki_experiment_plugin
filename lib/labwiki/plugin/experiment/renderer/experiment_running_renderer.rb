@@ -36,8 +36,8 @@ module LabWiki::Plugin::Experiment
           render_field_static :name => 'Name', :value => @experiment.name
           render_field_static :name => 'Status', :value => @experiment.state
           render_field_static :name => 'UUID', :value => @experiment.uuid
-          surl = @experiment.url
-          render_field_static :name => 'Script', value: surl, url: "lw:prepare/source_edit?url=#{surl}"
+          oedl_url = @experiment.oedl_url
+          render_field_static :name => 'Script', value: oedl_url, url: "lw:prepare:#{oedl_url}"
           if @experiment.slice
             render_field_static :name => 'Slice', :value => @experiment.slice
           end

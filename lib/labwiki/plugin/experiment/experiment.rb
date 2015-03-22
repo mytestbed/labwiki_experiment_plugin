@@ -22,7 +22,7 @@ module LabWiki::Plugin::Experiment
   class Experiment < OMF::Base::LObject
     DEF_MONITOR_INTERVAL = 5 # How frequently to check on Job Service
 
-    attr_reader :name, :uuid, :state, :url, :slice, :decl_properties, :exp_properties, :session_context, :job_url
+    attr_reader :name, :uuid, :state, :oedl_url, :url, :slice, :decl_properties, :exp_properties, :session_context, :job_url
 
     def initialize(params, config_opts)
       debug "PARAMS: #{params}, CONFIG: #{config_opts}"
@@ -34,13 +34,14 @@ module LabWiki::Plugin::Experiment
       case params[:mime_type]
       when "text/ruby"
         @state = :new
-        @url = params[:url]
-        if (@url)
-          @oedl_script = OMF::Web::ContentRepository.read_content(@url, params)
+        #@url = params[:url]
+        @oedl_url = params[:url]
+        if (@oedl_url)
+          @oedl_script = OMF::Web::ContentRepository.read_content(@oedl_url, params)
           begin
             @decl_properties = parse_oedl_script(@oedl_script)
           rescue => ex
-            warn "Parsing OEDL script '#{@url}' - #{ex}"
+            warn "Parsing OEDL script '#{@oedl_url}' - #{ex}"
             @decl_properties = []
           end
         end
@@ -80,7 +81,7 @@ module LabWiki::Plugin::Experiment
         # warn "Can't find script '#{url}'"
         # return # TODO: Raise appropriate exception
       # end
-      info "Starting experiment name: '#{@name}' url: '#{@url}'"
+      info "Starting experiment name: '#{@name}' url: '#{@oedl_url}'"
 
       _init_oml()
       _schedule_job(name, entered_properties, slice, gimi_info, params)
@@ -110,6 +111,9 @@ module LabWiki::Plugin::Experiment
         encoding: "base64",
         content: bc.split("\n")
       }
+
+      # FIXME use the empty irods_path in j.s to store, we don't want to touch job service for now
+      job[:irods_path] = @oedl_url
 
       job[:ec_properties] = @exp_properties
 
@@ -277,8 +281,14 @@ module LabWiki::Plugin::Experiment
           else
             reply = JSON.parse(resp.response)
             self.state = reply["status"]
+
             @uuid = reply["uuid"]
             @job_url = reply["href"]
+
+            # FIXME again, use irods_path temporarily to store oedl_url
+            @oedl_url = reply["irods_path"]
+            send_status(:ex_prop, { script: @oedl_url })
+
             @oml_url = reply["oml_db"]
             send_status(:ex_prop, { uuid: @uuid })
             @oml_connector.connect(@oml_url) if might_have_data?

@@ -32,7 +32,8 @@ module LabWiki::Plugin::Experiment
               render_field(-1, name: 'Slice', field_type: :text, default: "default_slice")
             end
 
-            render_field_static :name => 'Script', :value => @experiment.url, :url => "lw:prepare/source_edit?url=#{@experiment.url}"
+            render_field_static :name => 'Script', :value => @experiment.oedl_url, :url => "lw:prepare:#{@experiment.oedl_url}"
+
             properties.each_with_index do |prop, i|
               render_field(-1, prop)
             end
@@ -53,8 +54,8 @@ module LabWiki::Plugin::Experiment
       opts = {
         properties: @experiment.decl_properties,
         widget_id: @widget.widget_id,
-        url: "lw:execute/experiment?url=#{@experiment.url}",
-        script: @experiment.url,
+        #url: "lw:execute/experiment?url=#{@experiment.url}",
+        #script: @experiment.url,
         session_id: OMF::Web::SessionStore.session_id
       }
 
@@ -71,7 +72,7 @@ module LabWiki::Plugin::Experiment
         if properties
           table :class => 'experiment-status', :style => 'width: auto'  do
             render_field_static :name => 'Name', :value => @experiment.name
-            render_field_static :name => 'Script', :value => @experiment.url
+            render_field_static :name => 'Script', :value => @experiment.oedl_url
             properties.each_with_index do |prop, i|
               prop[:index] = i
               render_field_static(prop)
