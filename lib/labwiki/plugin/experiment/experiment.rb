@@ -54,7 +54,8 @@ module LabWiki::Plugin::Experiment
 
         # It is for url type lw:exp_name.exp
         if @job_url !~ /^http/
-          @name = params[:url].split('.')[0]
+          @name = params[:url].gsub(/\.exp$/, '')
+
           @job_url = "http://#{@job_service[:host]}:#{@job_service[:port]}/jobs/#{@name}"
         end
 
